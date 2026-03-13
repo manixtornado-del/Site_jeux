@@ -5,519 +5,483 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mot Wikipédia ♡ Mots Doux</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>window.va = window.va || function(){(window.vaq = window.vaq || []).push(arguments)};</script>
+<script defer src="/_vercel/insights/script.js"></script>
 <style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-:root {
-  --rose: #f7c5d5; --rose-d: #e8809e; --rose-l: #fdeef4;
-  --lavande: #d4c5f7; --lavande-d: #9b82e0; --lavande-l: #f0ecfd;
-  --menthe: #c5f0e0; --menthe-d: #5bc9a0; --menthe-l: #edfbf5;
-  --crème: #fef8f0; --beige: #f5ede0;
-  --brun-d: #7a5c4a; --brun: #b08a72;
-  --blanc: #ffffff; --texte: #4a3728; --texte-doux: #8a6d5e;
-  --shadow: rgba(180,130,110,0.15);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#f7c5d5;--rose-d:#e8809e;
+  --lavande:#d4c5f7;--lavande-d:#9b82e0;--lavande-l:#f0ecfd;
+  --menthe:#c5f0e0;--menthe-d:#5bc9a0;--menthe-l:#edfbf5;
+  --crème:#fef8f0;--beige:#f5ede0;
+  --brun-d:#7a5c4a;--brun:#b08a72;
+  --blanc:#ffffff;--texte:#4a3728;--texte-doux:#8a6d5e;
+  --shadow:rgba(180,130,110,0.15);
+  --nav-h:56px;
 }
-html { scroll-behavior: smooth; }
-body { font-family: 'Quicksand', sans-serif; background: var(--crème); color: var(--texte); min-height: 100vh; overflow-x: hidden; }
-body::before {
-  content: ''; position: fixed; inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 10%, rgba(212,197,247,0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 90%, rgba(197,240,224,0.2) 0%, transparent 50%);
-  pointer-events: none; z-index: 0;
+html{scroll-behavior:smooth}
+body{font-family:'Quicksand',sans-serif;background:var(--crème);color:var(--texte);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 20% 10%,rgba(212,197,247,.25) 0%,transparent 50%),radial-gradient(circle at 80% 90%,rgba(197,240,224,.2) 0%,transparent 50%);pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;height:var(--nav-h);background:rgba(254,248,240,.92);backdrop-filter:blur(14px);border-bottom:1.5px solid rgba(180,130,110,.1);padding:0 1rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.nav-logo{font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--texte);text-decoration:none;display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.nav-logo span{color:var(--rose-d)}
+.nav-center{display:flex;gap:.3rem;list-style:none;flex:1;justify-content:center}
+.nav-center a{text-decoration:none;font-size:.8rem;font-weight:600;color:var(--texte-doux);padding:.3rem .65rem;border-radius:100px;transition:background .15s,color .15s;border:1.5px solid transparent;white-space:nowrap}
+.nav-center a:hover{background:var(--beige);color:var(--texte)}
+.nav-center a.active{background:var(--blanc);color:var(--texte);border-color:rgba(180,130,110,.2);box-shadow:0 2px 8px var(--shadow)}
+.nav-right{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.lang-toggle{display:flex;background:var(--beige);border-radius:100px;padding:3px;gap:2px;border:1.5px solid rgba(180,130,110,.15)}
+.lang-btn{border:none;background:transparent;border-radius:100px;padding:.25rem .6rem;font-family:'Quicksand',sans-serif;font-size:.75rem;font-weight:700;color:var(--texte-doux);cursor:pointer;transition:background .15s,color .15s}
+.lang-btn.active{background:var(--blanc);color:var(--texte);box-shadow:0 1px 4px var(--shadow)}
+.hamburger{display:none;background:none;border:none;cursor:pointer;padding:6px;border-radius:8px}
+.hamburger span{display:block;width:22px;height:2px;background:var(--texte);border-radius:2px;transition:transform .25s,opacity .2s;margin:4px 0}
+.hamburger.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.mobile-drawer{display:none;position:fixed;top:var(--nav-h);left:0;right:0;z-index:99;background:rgba(254,248,240,.98);backdrop-filter:blur(14px);border-bottom:1.5px solid rgba(180,130,110,.12);padding:1rem;flex-direction:column;gap:.35rem;animation:drawerIn .2s ease}
+@keyframes drawerIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.mobile-drawer.open{display:flex}
+.mobile-drawer a{text-decoration:none;font-size:.95rem;font-weight:600;color:var(--texte-doux);padding:.6rem 1rem;border-radius:12px;transition:background .15s}
+.mobile-drawer a:hover,.mobile-drawer a.active{background:var(--beige);color:var(--texte)}
+.drawer-lang{display:flex;align-items:center;gap:.5rem;padding:.6rem 1rem}
+
+/* PAGE */
+.page{position:relative;z-index:10;max-width:680px;margin:0 auto;padding:1.25rem 1rem 4rem}
+.page-header{text-align:center;margin-bottom:1.2rem}
+.page-icon{width:58px;height:58px;border-radius:50%;background:var(--blanc);display:inline-flex;align-items:center;justify-content:center;font-size:1.6rem;box-shadow:0 4px 16px var(--shadow),0 0 0 5px rgba(212,197,247,.35);margin-bottom:.6rem;animation:bobble 3s ease-in-out infinite}
+@keyframes bobble{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-5px) rotate(3deg)}}
+.page-title{font-family:'Nunito',sans-serif;font-size:1.75rem;font-weight:800}
+.page-sub{font-size:.85rem;color:var(--texte-doux);margin-top:.25rem;font-weight:500}
+.info-row{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.1rem}
+.info-pill{background:var(--blanc);border-radius:100px;padding:.28rem .8rem;font-size:.74rem;font-weight:600;color:var(--texte-doux);box-shadow:0 2px 8px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
+.progress-bar-wrap{background:var(--beige);border-radius:100px;height:7px;margin-bottom:1.1rem;overflow:hidden}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--lavande-d),var(--menthe-d));border-radius:100px;transition:width .5s cubic-bezier(.34,1.56,.64,1);width:0}
+
+/* CARD */
+.wiki-card{background:var(--blanc);border-radius:20px;padding:1.25rem 1.2rem;margin-bottom:1.1rem;box-shadow:0 4px 20px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
+.wiki-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.4rem}
+.wiki-chip{background:var(--lavande-l);color:var(--lavande-d);border-radius:100px;padding:.22rem .75rem;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.progress-text{font-size:.74rem;font-weight:600;color:var(--texte-doux)}
+.title-area{margin-bottom:1.1rem;padding-bottom:.9rem;border-bottom:1.5px solid rgba(180,130,110,.1)}
+.area-label{font-size:.68rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem}
+.title-words{display:flex;flex-wrap:wrap;gap:.45rem;align-items:center;min-height:38px}
+.title-word{display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 .75rem;border-radius:10px;font-family:'Nunito',sans-serif;font-size:1.05rem;font-weight:800;transition:all .4s cubic-bezier(.34,1.56,.64,1);position:relative}
+.title-word.hidden{background:var(--beige);min-width:48px}
+.tw-dashes{color:var(--brun);opacity:.4;font-size:.85rem;letter-spacing:4px}
+.title-word.revealed{background:var(--lavande);color:var(--lavande-d);animation:popReveal .5s cubic-bezier(.34,1.56,.64,1)}
+.title-word.won{background:var(--menthe);color:var(--menthe-d);animation:popReveal .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popReveal{0%{transform:scale(.6) rotate(-8deg);opacity:.2}60%{transform:scale(1.18) rotate(2deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+.extract-text{font-size:.9rem;line-height:1.9;color:var(--texte);font-weight:500}
+.w-hidden{display:inline-block;background:var(--beige);color:transparent;border-radius:4px;padding:1px 3px;vertical-align:baseline;cursor:default;transition:all .35s cubic-bezier(.34,1.56,.64,1);position:relative}
+.w-hidden-inner{display:inline-block;color:var(--brun);opacity:.3;font-size:.58rem;font-weight:700;user-select:none;vertical-align:middle}
+.w-revealed{display:inline-block;border-radius:4px;padding:1px 3px;font-weight:700;vertical-align:baseline;animation:wordPop .4s cubic-bezier(.34,1.56,.64,1)}
+.w-revealed.normal{background:var(--lavande-l);color:var(--lavande-d)}
+.w-revealed.is-title{background:var(--menthe-l);color:var(--menthe-d)}
+.w-revealed.fresh{box-shadow:0 0 0 3px rgba(155,130,224,.35)}
+@keyframes wordPop{0%{transform:scale(.75);opacity:.4}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+/* INPUT */
+.input-section{margin-bottom:.9rem}
+.input-label{font-size:.72rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.45rem}
+.input-row{display:flex;gap:.55rem}
+.word-input{flex:1;height:48px;border-radius:13px;border:2px solid rgba(180,130,110,.25);background:var(--blanc);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--texte);padding:0 .9rem;outline:none;transition:border-color .15s,box-shadow .15s;min-width:0}
+.word-input::placeholder{font-weight:400;font-family:'Quicksand',sans-serif;font-size:.86rem;color:var(--brun);opacity:.55}
+.word-input:focus{border-color:var(--lavande-d);box-shadow:0 0 0 3px rgba(155,130,224,.2)}
+.word-input.shake{animation:shake .35s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.btn{background:var(--texte);color:var(--blanc);border:none;border-radius:13px;padding:0 1.2rem;height:48px;font-family:'Quicksand',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:.3rem;text-decoration:none;flex-shrink:0}
+.btn:hover{background:var(--brun-d);transform:scale(1.02)}
+.btn:active{transform:scale(.97)}
+.btn-outline{background:transparent;color:var(--texte-doux);border:1.5px solid rgba(180,130,110,.3)}
+.btn-outline:hover{background:var(--beige)}
+.btn:disabled{opacity:.4;cursor:default;transform:none !important}
+
+/* HISTORY */
+.history-wrap{display:flex;flex-wrap:wrap;gap:.38rem;margin-bottom:.9rem}
+.history-chip{padding:.26rem .7rem;border-radius:100px;font-size:.78rem;font-weight:700;animation:chipIn .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes chipIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.chip-found{background:var(--lavande-l);color:var(--lavande-d)}
+.chip-miss{background:var(--beige);color:var(--brun)}
+.chip-title{background:var(--menthe-l);color:var(--menthe-d)}
+
+/* RESULT */
+.result-banner{display:none;text-align:center;background:var(--blanc);border-radius:18px;padding:1.4rem 1.2rem;box-shadow:0 4px 20px var(--shadow);border:1.5px solid rgba(180,130,110,.12);margin-bottom:1.1rem}
+.result-banner.show{display:block;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.result-icon{font-size:2.3rem;margin-bottom:.45rem}
+.result-title{font-family:'Nunito',sans-serif;font-size:1.35rem;font-weight:800;margin-bottom:.35rem}
+.result-sub{color:var(--texte-doux);font-size:.88rem;margin-bottom:.75rem;line-height:1.5}
+.result-link{display:inline-flex;align-items:center;gap:.3rem;color:var(--lavande-d);font-weight:600;font-size:.85rem;text-decoration:none;margin-bottom:.9rem}
+.result-link:hover{text-decoration:underline}
+.result-btns{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap}
+.result-btns a{text-decoration:none}
+
+.abandon-btn{width:100%;margin-top:.45rem;padding:.6rem;background:transparent;border:1.5px dashed rgba(180,130,110,.3);border-radius:13px;font-family:'Quicksand',sans-serif;font-size:.8rem;font-weight:600;color:var(--texte-doux);cursor:pointer;transition:background .15s}
+.abandon-btn:hover{background:var(--beige)}
+
+/* SCORE MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,55,40,.35);z-index:200;backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--blanc);border-radius:22px;max-width:360px;width:100%;padding:1.75rem;box-shadow:0 20px 50px rgba(74,55,40,.25);animation:popIn .35s cubic-bezier(.34,1.56,.64,1);text-align:center}
+.modal-icon{font-size:2.2rem;margin-bottom:.5rem}
+.modal-title{font-family:'Nunito',sans-serif;font-size:1.25rem;font-weight:800;margin-bottom:.35rem}
+.modal-sub{color:var(--texte-doux);font-size:.85rem;margin-bottom:1rem;line-height:1.5}
+.modal-input{width:100%;height:46px;border-radius:12px;border:2px solid rgba(180,130,110,.25);background:var(--beige);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--texte);padding:0 1rem;outline:none;margin-bottom:.75rem;transition:border-color .15s}
+.modal-input:focus{border-color:var(--lavande-d)}
+.modal-btns{display:flex;gap:.5rem;flex-direction:column}
+
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;font-weight:600;font-size:.88rem;z-index:300;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .nav-center{display:none}
+  .hamburger{display:block}
+  .page{padding:1rem .75rem 3rem}
+  .input-row{flex-direction:column}
+  .btn{height:44px}
+  .wiki-card{padding:1rem .9rem}
 }
-
-.nav { position: sticky; top: 0; z-index: 50; background: rgba(254,248,240,0.88); backdrop-filter: blur(12px); border-bottom: 1.5px solid rgba(180,130,110,0.1); padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
-.nav-logo { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--texte); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
-.nav-logo span { color: var(--rose-d); }
-.nav-links { display: flex; gap: 0.4rem; list-style: none; }
-.nav-links a { text-decoration: none; font-size: 0.82rem; font-weight: 600; color: var(--texte-doux); padding: 0.3rem 0.75rem; border-radius: 100px; transition: background 0.15s, color 0.15s; border: 1.5px solid transparent; }
-.nav-links a:hover { background: var(--beige); color: var(--texte); }
-.nav-links a.active { background: var(--blanc); color: var(--texte); border-color: rgba(180,130,110,0.2); box-shadow: 0 2px 8px var(--shadow); }
-
-.page { position: relative; z-index: 10; max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-
-.page-header { text-align: center; margin-bottom: 1.5rem; }
-.page-icon { width: 60px; height: 60px; border-radius: 50%; background: var(--blanc); display: inline-flex; align-items: center; justify-content: center; font-size: 1.7rem; box-shadow: 0 4px 16px var(--shadow), 0 0 0 5px rgba(212,197,247,0.35); margin-bottom: 0.7rem; animation: bobble 3s ease-in-out infinite; }
-@keyframes bobble { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
-.page-title { font-family: 'Nunito', sans-serif; font-size: 1.8rem; font-weight: 800; }
-.page-sub { font-size: 0.88rem; color: var(--texte-doux); margin-top: 0.3rem; font-weight: 500; }
-
-.info-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.info-pill { background: var(--blanc); border-radius: 100px; padding: 0.3rem 0.85rem; font-size: 0.78rem; font-weight: 600; color: var(--texte-doux); box-shadow: 0 2px 8px var(--shadow); border: 1.5px solid rgba(180,130,110,0.1); }
-
-/* Barre de progression */
-.progress-bar-wrap { background: var(--beige); border-radius: 100px; height: 8px; margin-bottom: 1.25rem; overflow: hidden; }
-.progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--lavande-d), var(--menthe-d)); border-radius: 100px; transition: width 0.5s cubic-bezier(0.34,1.56,0.64,1); width: 0%; }
-
-/* CARTE */
-.wiki-card { background: var(--blanc); border-radius: 20px; padding: 1.4rem 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 4px 20px var(--shadow); border: 1.5px solid rgba(180,130,110,0.1); }
-.wiki-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
-.wiki-chip { background: var(--lavande-l); color: var(--lavande-d); border-radius: 100px; padding: 0.25rem 0.8rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-.progress-text { font-size: 0.78rem; font-weight: 600; color: var(--texte-doux); }
-
-/* TITRE */
-.title-area { margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1.5px solid rgba(180,130,110,0.1); }
-.area-label { font-size: 0.72rem; font-weight: 700; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.55rem; }
-.title-words { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; min-height: 40px; }
-
-.title-word {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 36px; padding: 0 0.8rem; border-radius: 10px;
-  font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: 800;
-  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  position: relative;
+@media(min-width:601px){
+  .hamburger{display:none}
+  .mobile-drawer{display:none !important}
 }
-.title-word.hidden {
-  background: var(--beige); min-width: 50px; cursor: default;
-}
-.title-word.hidden .tw-dashes {
-  color: var(--brun); opacity: 0.4; font-size: 0.9rem; letter-spacing: 4px;
-}
-.title-word.revealed {
-  background: var(--lavande); color: var(--lavande-d);
-  animation: popReveal 0.5s cubic-bezier(0.34,1.56,0.64,1);
-}
-.title-word.won {
-  background: var(--menthe); color: var(--menthe-d);
-  animation: popReveal 0.5s cubic-bezier(0.34,1.56,0.64,1);
-}
-@keyframes popReveal { 0% { transform: scale(0.6) rotate(-8deg); opacity:0.2; } 60% { transform: scale(1.18) rotate(2deg); } 100% { transform: scale(1) rotate(0); opacity:1; } }
-
-/* EXTRAIT */
-.extract-text { font-size: 0.93rem; line-height: 1.9; color: var(--texte); font-weight: 500; }
-
-.w-hidden {
-  display: inline-block; background: var(--beige); color: transparent;
-  border-radius: 4px; padding: 1px 3px;
-  vertical-align: baseline; cursor: default;
-  transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
-  position: relative;
-}
-.w-hidden-inner {
-  display: inline-block; color: var(--brun); opacity: 0.3;
-  font-size: 0.6rem; font-weight: 700; letter-spacing: 1px;
-  user-select: none; vertical-align: middle;
-}
-.w-revealed {
-  display: inline-block; border-radius: 4px; padding: 1px 3px;
-  font-weight: 700; vertical-align: baseline;
-  animation: wordPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
-}
-.w-revealed.normal { background: var(--lavande-l); color: var(--lavande-d); }
-.w-revealed.is-title { background: var(--menthe-l); color: var(--menthe-d); }
-.w-revealed.fresh { box-shadow: 0 0 0 3px rgba(155,130,224,0.35); }
-@keyframes wordPop { 0% { transform: scale(0.75); opacity:0.4; } 60% { transform: scale(1.1); } 100% { transform: scale(1); opacity:1; } }
-
-/* SAISIE */
-.input-section { margin-bottom: 0.9rem; }
-.input-label { font-size: 0.78rem; font-weight: 700; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
-.input-row { display: flex; gap: 0.6rem; }
-.word-input {
-  flex: 1; height: 50px; border-radius: 14px;
-  border: 2px solid rgba(180,130,110,0.25); background: var(--blanc);
-  font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 700;
-  color: var(--texte); padding: 0 1rem; outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-.word-input::placeholder { font-weight: 400; font-family: 'Quicksand', sans-serif; font-size: 0.88rem; color: var(--brun); opacity: 0.55; }
-.word-input:focus { border-color: var(--lavande-d); box-shadow: 0 0 0 3px rgba(155,130,224,0.2); }
-.word-input.shake { animation: shake 0.35s ease; }
-@keyframes shake { 0%,100% { transform:translateX(0); } 25% { transform:translateX(-7px); } 75% { transform:translateX(7px); } }
-
-.btn { background: var(--texte); color: var(--blanc); border: none; border-radius: 14px; padding: 0 1.3rem; height: 50px; font-family: 'Quicksand', sans-serif; font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none; }
-.btn:hover { background: var(--brun-d); transform: scale(1.02); }
-.btn:active { transform: scale(0.97); }
-.btn-outline { background: transparent; color: var(--texte-doux); border: 1.5px solid rgba(180,130,110,0.3); }
-.btn-outline:hover { background: var(--beige); }
-.btn:disabled { opacity: 0.4; cursor: default; transform: none !important; }
-
-/* HISTORIQUE */
-.history-wrap { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
-.history-chip { padding: 0.28rem 0.75rem; border-radius: 100px; font-size: 0.8rem; font-weight: 700; animation: chipIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes chipIn { from { transform:scale(0.5); opacity:0; } to { transform:scale(1); opacity:1; } }
-.chip-found { background: var(--lavande-l); color: var(--lavande-d); }
-.chip-miss  { background: var(--beige); color: var(--brun); }
-.chip-title { background: var(--menthe-l); color: var(--menthe-d); font-size: 0.85rem; }
-
-/* RÉSULTAT */
-.result-banner { display: none; text-align: center; background: var(--blanc); border-radius: 20px; padding: 1.5rem; box-shadow: 0 4px 20px var(--shadow); border: 1.5px solid rgba(180,130,110,0.12); margin-bottom: 1.25rem; }
-.result-banner.show { display: block; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
-@keyframes popIn { from { transform:scale(0.85); opacity:0; } to { transform:scale(1); opacity:1; } }
-.result-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-.result-title { font-family: 'Nunito', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 0.4rem; }
-.result-sub { color: var(--texte-doux); font-size: 0.9rem; margin-bottom: 0.8rem; line-height: 1.6; }
-.result-link { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--lavande-d); font-weight: 600; font-size: 0.88rem; text-decoration: none; margin-bottom: 1rem; }
-.result-link:hover { text-decoration: underline; }
-.result-btns { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
-
-.abandon-btn { width: 100%; margin-top: 0.5rem; padding: 0.65rem; background: transparent; border: 1.5px dashed rgba(180,130,110,0.3); border-radius: 14px; font-family: 'Quicksand', sans-serif; font-size: 0.82rem; font-weight: 600; color: var(--texte-doux); cursor: pointer; transition: background 0.15s; }
-.abandon-btn:hover { background: var(--beige); }
-
-.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--texte); color: var(--blanc); padding: 0.7rem 1.4rem; border-radius: 100px; font-weight: 600; font-size: 0.9rem; z-index: 200; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; white-space: nowrap; pointer-events: none; }
-.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-@media (max-width: 480px) { .input-row { flex-direction: column; } .btn { height: 46px; } }
 </style>
 </head>
 <body>
 
 <nav class="nav">
   <a href="index.html" class="nav-logo">🌸 Mots <span>Doux</span></a>
-  <ul class="nav-links">
-    <li><a href="index.html">Accueil</a></li>
-    <li><a href="sutom.html">🔤 Sutom</a></li>
-    <li><a href="wiki.html" class="active">📖 Wikipédia</a></li>
+  <ul class="nav-center">
+    <li><a href="index.html" data-i18n="home"></a></li>
+    <li><a href="sutom.html" data-i18n="sutom_nav"></a></li>
+    <li><a href="wiki.html" class="active" data-i18n="wiki_nav"></a></li>
   </ul>
+  <div class="nav-right">
+    <div class="lang-toggle">
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
 </nav>
+<div class="mobile-drawer" id="mobile-drawer">
+  <a href="index.html" data-i18n="home"></a>
+  <a href="sutom.html" data-i18n="sutom_nav"></a>
+  <a href="wiki.html" class="active" data-i18n="wiki_nav"></a>
+  <div class="drawer-lang">
+    <span style="font-size:.82rem;color:var(--texte-doux);font-weight:600">🌍</span>
+    <div class="lang-toggle">
+      <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+      <button class="lang-btn" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
 
 <div class="page">
   <div class="page-header">
     <div class="page-icon">📖</div>
-    <h1 class="page-title">Mot Wikipédia</h1>
-    <p class="page-sub">Propose des mots pour dévoiler l'article, puis trouve son titre ✨</p>
+    <h1 class="page-title" data-i18n="title"></h1>
+    <p class="page-sub" data-i18n="subtitle"></p>
   </div>
-
   <div class="info-row">
-    <span class="info-pill" id="pill-date">📅 …</span>
-    <span class="info-pill">💬 <span id="count-guesses">0</span> mots proposés</span>
-    <span class="info-pill">✨ <span id="count-pct">0%</span> révélé</span>
+    <span class="info-pill" id="pill-date"></span>
+    <span class="info-pill">💬 <span id="count-guesses">0</span> <span data-i18n="words_tried"></span></span>
+    <span class="info-pill">✨ <span id="count-pct">0%</span> <span data-i18n="revealed"></span></span>
   </div>
-
   <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progress-bar"></div></div>
 
   <div class="result-banner" id="result">
     <div class="result-icon" id="res-icon">🎉</div>
     <div class="result-title" id="res-title"></div>
     <div class="result-sub" id="res-sub"></div>
-    <a class="result-link" id="res-link" href="#" target="_blank">🔗 Lire l'article sur Wikipédia →</a>
+    <a class="result-link" id="res-link" href="#" target="_blank"></a>
     <div class="result-btns">
-      <a href="sutom.html" class="btn">🔤 Jouer à Sutom</a>
-      <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
+      <a href="sutom.html" class="btn" data-i18n="btn_sutom"></a>
+      <a href="index.html" class="btn btn-outline" data-i18n="back_home"></a>
     </div>
   </div>
 
   <div class="wiki-card">
     <div class="wiki-card-header">
-      <span class="wiki-chip">📖 Article du jour</span>
-      <span class="progress-text" id="progress-text">Révèle le texte pour deviner !</span>
+      <span class="wiki-chip">📖 <span data-i18n="article_du_jour"></span></span>
+      <span class="progress-text" id="progress-text" data-i18n="progress_init"></span>
     </div>
     <div class="title-area">
-      <div class="area-label">Titre à trouver</div>
+      <div class="area-label" data-i18n="title_label"></div>
       <div class="title-words" id="title-display"></div>
     </div>
-    <div class="area-label">Extrait Wikipédia</div>
+    <div class="area-label" data-i18n="extract_label"></div>
     <div class="extract-text" id="extract-display"></div>
   </div>
 
   <div class="history-wrap" id="history"></div>
 
   <div class="input-section" id="input-section">
-    <div class="input-label">Propose un mot</div>
+    <div class="input-label" data-i18n="propose_label"></div>
     <div class="input-row">
-      <input class="word-input" id="word-input" type="text" placeholder="Un mot, puis Entrée…" autocomplete="off" autocorrect="off" spellcheck="false" />
-      <button class="btn" id="submit-btn" onclick="submitWord()">Valider ✓</button>
+      <input class="word-input" id="word-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn" id="submit-btn" onclick="submitWord()" data-i18n="validate"></button>
     </div>
   </div>
+  <button class="abandon-btn" id="abandon-btn" onclick="abandon()" data-i18n="abandon"></button>
+</div>
 
-  <button class="abandon-btn" id="abandon-btn" onclick="abandon()">😮‍💨 Abandonner et voir la réponse</button>
+<!-- Score modal -->
+<div class="modal-overlay" id="score-modal">
+  <div class="modal">
+    <div class="modal-icon">🏆</div>
+    <div class="modal-title" data-i18n="modal_title"></div>
+    <div class="modal-sub" data-i18n="modal_sub"></div>
+    <input class="modal-input" id="score-name" type="text" maxlength="20" autocomplete="off" />
+    <div class="modal-btns">
+      <button class="btn" onclick="submitScore()" data-i18n="modal_submit"></button>
+      <button class="btn btn-outline" onclick="skipScore()" data-i18n="modal_skip"></button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-//  ARTICLES
-// ============================================================
-const ARTICLES = [
-  {
-    title: "Tour Eiffel",
-    extract: "La tour Eiffel est une tour en fer puddlé construite à Paris par Gustave Eiffel pour l'Exposition universelle de Paris de 1889. Symbole de la France dans le monde entier, la tour Eiffel est le monument payant le plus visité au monde, avec plus de sept millions de visiteurs par an. Elle est également le monument le plus photographié de la planète.",
-    url: "https://fr.wikipedia.org/wiki/Tour_Eiffel"
+// I18N
+const T={
+  fr:{home:"Accueil",sutom_nav:"🔤 Sutom",wiki_nav:"📖 Wikipédia",
+    title:"Mot Wikipédia",subtitle:"Propose des mots pour dévoiler l'article, puis devine son titre ✨",
+    words_tried:"mots proposés",revealed:"révélé",
+    article_du_jour:"Article du jour",progress_init:"Révèle le texte pour deviner !",
+    title_label:"Titre à trouver",extract_label:"Extrait Wikipédia",
+    propose_label:"Propose un mot",validate:"Valider ✓",abandon:"😮‍💨 Abandonner et voir la réponse",
+    btn_sutom:"🔤 Jouer à Sutom",back_home:"🏠 Accueil",
+    already:"Déjà proposé !",
+    modal_title:"Ton score !",modal_sub:"Entre ton pseudo pour le leaderboard 🏆",
+    modal_ph:"Ton pseudo…",modal_submit:"Enregistrer 🎉",modal_skip:"Non merci",
+    lose:"L'article était…",
+    read_wiki:"🔗 Lire l'article sur Wikipédia →",
   },
-  {
-    title: "Chocolat",
-    extract: "Le chocolat est un aliment produit à partir des fèves du cacaoyer. La fabrication du chocolat implique la fermentation et le séchage des fèves de cacao, puis leur torréfaction et leur broyage. La France, la Belgique et la Suisse sont des pays réputés pour la qualité de leur chocolat. Le chocolat noir, le chocolat au lait et le chocolat blanc sont les trois grandes familles de chocolat.",
-    url: "https://fr.wikipedia.org/wiki/Chocolat"
-  },
-  {
-    title: "Versailles",
-    extract: "Versailles est une commune française, chef-lieu du département des Yvelines, en région Île-de-France. La ville est mondialement connue pour son château et ses jardins classiques. Le château de Versailles fut la résidence officielle des rois de France Louis XIV, Louis XV et Louis XVI. Les jardins de Versailles, dessinés par André Le Nôtre, couvrent plus de 800 hectares.",
-    url: "https://fr.wikipedia.org/wiki/Versailles"
-  },
-  {
-    title: "Boulangerie",
-    extract: "Une boulangerie est un commerce spécialisé dans la fabrication et la vente de pain, de viennoiseries et de pâtisseries. En France, le terme boulangerie est protégé par la loi depuis 1998 et seuls les artisans qui fabriquent leur pain sur place ont le droit d'utiliser cette appellation. La baguette, symbole de la boulangerie française, a été inscrite en 2022 au patrimoine immatériel de l'UNESCO.",
-    url: "https://fr.wikipedia.org/wiki/Boulangerie"
-  },
-  {
-    title: "Lavande",
-    extract: "La lavande est une plante aromatique de la famille des Lamiacées, originaire du pourtour méditerranéen. En France, la lavande est cultivée principalement en Provence, où elle forme des champs d'un bleu violet caractéristique. La lavande est utilisée en parfumerie, en phytothérapie et en cuisine. Son huile essentielle est reconnue pour ses propriétés calmantes et antiseptiques.",
-    url: "https://fr.wikipedia.org/wiki/Lavande"
-  },
-  {
-    title: "Arc-en-ciel",
-    extract: "Un arc-en-ciel est un phénomène optique et météorologique naturel produisant un spectre continu de lumière dans le ciel. Il résulte de la réfraction de la lumière solaire dans les gouttes de pluie. Un arc-en-ciel forme toujours un arc de cercle dont le centre se trouve à l'opposé du soleil par rapport à l'observateur. On distingue sept couleurs dans un arc-en-ciel : rouge, orange, jaune, vert, bleu, indigo et violet.",
-    url: "https://fr.wikipedia.org/wiki/Arc-en-ciel"
-  },
-  {
-    title: "Musée du Louvre",
-    extract: "Le musée du Louvre est un musée national situé dans le premier arrondissement de Paris, en France. C'est le plus grand musée d'art du monde par sa superficie. Le Louvre est installé dans l'ancien palais royal du Louvre, qui a été agrandi au fil des siècles. Parmi les œuvres les plus célèbres du Louvre figurent la Joconde de Léonard de Vinci, la Vénus de Milo et la Victoire de Samothrace.",
-    url: "https://fr.wikipedia.org/wiki/Mus%C3%A9e_du_Louvre"
-  },
-  {
-    title: "Pieuvre",
-    extract: "La pieuvre, aussi appelée poulpe, est un animal marin appartenant à la classe des céphalopodes. La pieuvre possède huit tentacules munis de ventouses, un corps mou appelé manteau et une tête portant deux grands yeux. La pieuvre est un animal très intelligent, capable de résoudre des problèmes complexes et de s'échapper de récipients fermés. Elle peut modifier la couleur et la texture de sa peau pour se camoufler instantanément.",
-    url: "https://fr.wikipedia.org/wiki/Poulpe"
-  },
-  {
-    title: "Montgolfière",
-    extract: "Une montgolfière est un aérostat dont la portance est obtenue par chauffage de l'air contenu dans une grande enveloppe de tissu. La montgolfière a été inventée par les frères Joseph-Michel et Jacques-Étienne Montgolfier en 1783, à Annonay, en France. Le premier vol humain en montgolfière a eu lieu le 21 novembre 1783 à Paris. Aujourd'hui, les montgolfières sont principalement utilisées pour des activités de loisirs et de tourisme.",
-    url: "https://fr.wikipedia.org/wiki/Montgolfi%C3%A8re"
-  },
-  {
-    title: "Fromage",
-    extract: "Le fromage est un aliment obtenu à partir de lait coagulé, affiné ou non. La France est l'un des premiers pays producteurs et consommateurs de fromage au monde, avec plus de 1200 fromages différents répertoriés. La fabrication du fromage repose sur la coagulation des protéines du lait, suivie d'un égouttage et souvent d'un affinage. Parmi les fromages français les plus connus figurent le camembert, le brie, le roquefort et le comté.",
-    url: "https://fr.wikipedia.org/wiki/Fromage"
+  en:{home:"Home",sutom_nav:"🔤 Sutom",wiki_nav:"📖 Wikipedia",
+    title:"Wikipedia Word",subtitle:"Guess words to reveal the article, then find its title ✨",
+    words_tried:"words tried",revealed:"revealed",
+    article_du_jour:"Article of the day",progress_init:"Reveal the text to guess!",
+    title_label:"Title to find",extract_label:"Wikipedia excerpt",
+    propose_label:"Guess a word",validate:"Submit ✓",abandon:"😮‍💨 Give up and see the answer",
+    btn_sutom:"🔤 Play Sutom",back_home:"🏠 Home",
+    already:"Already tried!",
+    modal_title:"Your score!",modal_sub:"Enter your name for the leaderboard 🏆",
+    modal_ph:"Your name…",modal_submit:"Save 🎉",modal_skip:"No thanks",
+    lose:"The article was…",
+    read_wiki:"🔗 Read the article on Wikipedia →",
   }
+};
+let lang=localStorage.getItem('md-lang')||(navigator.language.startsWith('en')?'en':'fr');
+function t(k){return(T[lang]&&T[lang][k])||(T.fr[k])||k}
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  document.documentElement.lang=lang;
+  document.getElementById('score-name').placeholder=t('modal_ph');
+  document.getElementById('word-input').placeholder=lang==='en'?'A word, then Enter…':'Un mot, puis Entrée…';
+  const locale=lang==='en'?'en-US':'fr-FR';
+  document.getElementById('pill-date').textContent='📅 '+new Date().toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long'});
+  updateProgressText();
+}
+function setLang(l){lang=l;localStorage.setItem('md-lang',l);applyLang();toggleMenu(true)}
+
+// ARTICLES
+const ARTICLES_FR=[
+  {title:"Tour Eiffel",extract:"La tour Eiffel est une tour en fer puddlé construite à Paris par Gustave Eiffel pour l'Exposition universelle de Paris de 1889. Symbole de la France dans le monde entier, la tour Eiffel est le monument payant le plus visité au monde, avec plus de sept millions de visiteurs par an. Elle est également le monument le plus photographié de la planète.",url:"https://fr.wikipedia.org/wiki/Tour_Eiffel"},
+  {title:"Chocolat",extract:"Le chocolat est un aliment produit à partir des fèves du cacaoyer. La fabrication du chocolat implique la fermentation et le séchage des fèves de cacao, puis leur torréfaction et leur broyage. La France, la Belgique et la Suisse sont des pays réputés pour la qualité de leur chocolat. Le chocolat noir, le chocolat au lait et le chocolat blanc sont les trois grandes familles de chocolat.",url:"https://fr.wikipedia.org/wiki/Chocolat"},
+  {title:"Versailles",extract:"Versailles est une commune française, chef-lieu du département des Yvelines, en région Île-de-France. La ville est mondialement connue pour son château et ses jardins classiques. Le château de Versailles fut la résidence officielle des rois de France Louis XIV, Louis XV et Louis XVI. Les jardins de Versailles, dessinés par André Le Nôtre, couvrent plus de 800 hectares.",url:"https://fr.wikipedia.org/wiki/Versailles"},
+  {title:"Boulangerie",extract:"Une boulangerie est un commerce spécialisé dans la fabrication et la vente de pain, de viennoiseries et de pâtisseries. En France, le terme boulangerie est protégé par la loi depuis 1998 et seuls les artisans qui fabriquent leur pain sur place ont le droit d'utiliser cette appellation. La baguette, symbole de la boulangerie française, a été inscrite en 2022 au patrimoine immatériel de l'UNESCO.",url:"https://fr.wikipedia.org/wiki/Boulangerie"},
+  {title:"Lavande",extract:"La lavande est une plante aromatique de la famille des Lamiacées, originaire du pourtour méditerranéen. En France, la lavande est cultivée principalement en Provence, où elle forme des champs d'un bleu violet caractéristique. La lavande est utilisée en parfumerie, en phytothérapie et en cuisine. Son huile essentielle est reconnue pour ses propriétés calmantes et antiseptiques.",url:"https://fr.wikipedia.org/wiki/Lavande"},
+  {title:"Arc-en-ciel",extract:"Un arc-en-ciel est un phénomène optique et météorologique naturel produisant un spectre continu de lumière dans le ciel. Il résulte de la réfraction de la lumière solaire dans les gouttes de pluie. Un arc-en-ciel forme toujours un arc de cercle dont le centre se trouve à l'opposé du soleil par rapport à l'observateur. On distingue sept couleurs dans un arc-en-ciel : rouge, orange, jaune, vert, bleu, indigo et violet.",url:"https://fr.wikipedia.org/wiki/Arc-en-ciel"},
+  {title:"Musée du Louvre",extract:"Le musée du Louvre est un musée national situé dans le premier arrondissement de Paris, en France. C'est le plus grand musée d'art du monde par sa superficie. Le Louvre est installé dans l'ancien palais royal du Louvre, qui a été agrandi au fil des siècles. Parmi les œuvres les plus célèbres du Louvre figurent la Joconde de Léonard de Vinci, la Vénus de Milo et la Victoire de Samothrace.",url:"https://fr.wikipedia.org/wiki/Mus%C3%A9e_du_Louvre"},
+  {title:"Pieuvre",extract:"La pieuvre, aussi appelée poulpe, est un animal marin appartenant à la classe des céphalopodes. La pieuvre possède huit tentacules munis de ventouses, un corps mou appelé manteau et une tête portant deux grands yeux. La pieuvre est un animal très intelligent, capable de résoudre des problèmes complexes et de s'échapper de récipients fermés. Elle peut modifier la couleur et la texture de sa peau pour se camoufler instantanément.",url:"https://fr.wikipedia.org/wiki/Poulpe"},
+  {title:"Montgolfière",extract:"Une montgolfière est un aérostat dont la portance est obtenue par chauffage de l'air contenu dans une grande enveloppe de tissu. La montgolfière a été inventée par les frères Joseph-Michel et Jacques-Étienne Montgolfier en 1783, à Annonay, en France. Le premier vol humain en montgolfière a eu lieu le 21 novembre 1783 à Paris. Aujourd'hui, les montgolfières sont principalement utilisées pour des activités de loisirs et de tourisme.",url:"https://fr.wikipedia.org/wiki/Montgolfi%C3%A8re"},
+  {title:"Fromage",extract:"Le fromage est un aliment obtenu à partir de lait coagulé, affiné ou non. La France est l'un des premiers pays producteurs et consommateurs de fromage au monde, avec plus de 1200 fromages différents répertoriés. La fabrication du fromage repose sur la coagulation des protéines du lait, suivie d'un égouttage et souvent d'un affinage. Parmi les fromages français les plus connus figurent le camembert, le brie, le roquefort et le comté.",url:"https://fr.wikipedia.org/wiki/Fromage"},
+];
+const ARTICLES_EN=[
+  {title:"Eiffel Tower",extract:"The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France. It was constructed from 1887 to 1889 as the centerpiece of the 1889 World's Fair. The tower is 330 metres tall and was the world's tallest man-made structure for 41 years. The Eiffel Tower is the most-visited paid monument in the world, attracting millions of tourists each year.",url:"https://en.wikipedia.org/wiki/Eiffel_Tower"},
+  {title:"Chocolate",extract:"Chocolate is a food made from roasted and ground cacao seed kernels that is available as a liquid, solid, or paste. It is also used as a flavoring ingredient in many foods. The cacao tree has been used as a source of food for at least 5,300 years. Switzerland and Belgium are well known for their high-quality chocolate production.",url:"https://en.wikipedia.org/wiki/Chocolate"},
+  {title:"Rainbow",extract:"A rainbow is a meteorological phenomenon that is caused by reflection, refraction and dispersion of light in water droplets resulting in a spectrum of light appearing in the sky. It takes the form of a multicoloured circular arc. Rainbows caused by sunlight always appear in the section of sky directly opposite the Sun. The bow is commonly divided into seven colors: red, orange, yellow, green, blue, indigo and violet.",url:"https://en.wikipedia.org/wiki/Rainbow"},
+  {title:"Bread",extract:"Bread is a staple food prepared from a dough of flour and water, usually by baking. Throughout recorded history and around the world, it has been an important part of many cultures' diet. It is one of the oldest human-made foods, having been of significance since the dawn of agriculture. Bread may be leavened by processes such as reliance on naturally occurring sourdough microbes, chemicals, or industrially produced yeast.",url:"https://en.wikipedia.org/wiki/Bread"},
+  {title:"Butterfly",extract:"Butterflies are insects in the macrolepidopteran clade Rhopalocera from the order Lepidoptera, which also includes moths. Adult butterflies have large, often brightly coloured wings, and conspicuous, fluttering flight. Butterflies have a four-stage life cycle: egg, larva, pupa and adult. The word butterfly was first used in Old English as buttorfleoge.",url:"https://en.wikipedia.org/wiki/Butterfly"},
+  {title:"Ocean",extract:"The ocean is a body of salt water that covers approximately 70.8% of the Earth and contains 97% of Earth's water. An ocean also refers to any of the large bodies of water into which the world ocean is conventionally divided. The five oceans, from largest to smallest, are the Pacific, Atlantic, Indian, Southern and Arctic. Seawater covers approximately 361,000,000 km² of the Earth's surface.",url:"https://en.wikipedia.org/wiki/Ocean"},
+  {title:"Piano",extract:"The piano is a keyboard instrument that produces sound by striking strings with hammers that are attached to the keys. It is one of the most widely used instruments in classical music for solo performance, chamber music, and accompaniment. The piano was invented in Italy by Bartolomeo Cristofori around the year 1700. The word piano is a shortened form of pianoforte, the Italian term for the early 1700s versions of the instrument.",url:"https://en.wikipedia.org/wiki/Piano"},
+  {title:"Volcano",extract:"A volcano is a rupture in the crust of a planetary-mass object, such as Earth, that allows hot lava, volcanic ash, and gases to escape from a magma chamber below the surface. On Earth, volcanoes are most often found where tectonic plates are diverging or converging, and most are found underwater. Volcanoes can cause widespread destruction and consequent disasters both directly and indirectly.",url:"https://en.wikipedia.org/wiki/Volcano"},
+  {title:"Coffee",extract:"Coffee is a brewed drink prepared from roasted coffee beans, the seeds of berries from certain Coffea species. When coffee berries turn from green to bright red in color, they are ripe and ready to be harvested. Brazil is the largest producer of coffee in the world. Coffee is the world's second most traded commodity after petroleum, and is consumed by over 2 billion people daily.",url:"https://en.wikipedia.org/wiki/Coffee"},
+  {title:"Penguin",extract:"Penguins are a group of aquatic flightless birds from the family Spheniscidae. They live almost exclusively in the Southern Hemisphere with only one species, the Galápagos penguin, found north of the Equator. Highly adapted for life in the water, penguins have countershaded dark and white plumage and flippers for swimming. Most penguins feed on fish, squid, crustaceans and krill.",url:"https://en.wikipedia.org/wiki/Penguin"},
 ];
 
-// ============================================================
-//  INIT
-// ============================================================
-const today = new Date();
-const dayIdx = Math.floor((today - new Date(today.getFullYear(),0,0)) / 86400000);
-const ART = ARTICLES[dayIdx % ARTICLES.length];
+const today=new Date();
+const dayIdx=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
+function getArticle(){return lang==='en'?ARTICLES_EN[dayIdx%ARTICLES_EN.length]:ARTICLES_FR[dayIdx%ARTICLES_FR.length]}
 
-document.getElementById('pill-date').textContent =
-  '📅 ' + today.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')}
+function tokenize(text){return text.match(/[a-zA-ZÀ-ÿ\u0100-\u017F]+|[^a-zA-ZÀ-ÿ\u0100-\u017F]+/g)||[]}
 
-// Normalise : minuscules, sans accents, sans ponctuation
-function norm(s) {
-  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+let ART=getArticle();
+let tokens=tokenize(ART.extract);
+let wordTokenCount=tokens.filter(t=>/[a-zA-ZÀ-ÿ]/.test(t)).length;
+let revealedNorms=new Set(),guessedNorms=new Set();
+let totalGuesses=0,gameOver=false,lastNorm=null,pendingScore=0;
+let titleWords=ART.title.split(/\s+/),titleNorms=titleWords.map(norm);
+
+function reinitArticle(){
+  ART=getArticle();tokens=tokenize(ART.extract);
+  wordTokenCount=tokens.filter(t=>/[a-zA-ZÀ-ÿ]/.test(t)).length;
+  revealedNorms=new Set();guessedNorms=new Set();
+  totalGuesses=0;gameOver=false;lastNorm=null;
+  titleWords=ART.title.split(/\s+/);titleNorms=titleWords.map(norm);
 }
 
-// Tokenise l'extrait : alterne mots (lettres) et non-mots (espaces/ponctuation)
-function tokenize(text) {
-  return text.match(/[a-zA-ZÀ-ÿ\u0100-\u017F]+|[^a-zA-ZÀ-ÿ\u0100-\u017F]+/g) || [];
+function updateProgressText(){
+  const pct=wordTokenCount>0?Math.round(revealedNorms.size/wordTokenCount*100):0;
+  document.getElementById('progress-text').textContent=
+    pct===0?t('progress_init'):(lang==='en'?`${pct}% of the article revealed`:`${pct}% de l'article révélé`);
 }
 
-const tokens = tokenize(ART.extract);
-const wordTokens = tokens.filter(t => /[a-zA-ZÀ-ÿ]/.test(t));
-const totalWordCount = wordTokens.length;
-
-// État
-const revealedNorms = new Set();  // normes déjà révélées
-const guessedNorms  = new Set();  // tout ce qui a été proposé
-let totalGuesses = 0;
-let gameOver = false;
-let lastNorm = null; // pour highlight "fresh"
-
-// Mots du titre
-const titleWords = ART.title.split(/\s+/);
-const titleNorms  = titleWords.map(norm);
-
-// ============================================================
-//  RENDU TITRE
-// ============================================================
-function renderTitle(revealAll) {
-  const el = document.getElementById('title-display');
-  el.innerHTML = '';
-  titleWords.forEach((word, i) => {
-    const tn = titleNorms[i];
-    const revealed = revealAll || revealedNorms.has(tn);
-    const span = document.createElement('span');
-    if (revealed) {
-      span.className = 'title-word ' + (revealAll ? 'won' : 'revealed');
-      span.textContent = word;
-    } else {
-      span.className = 'title-word hidden';
-      const dashes = document.createElement('span');
-      dashes.className = 'tw-dashes';
-      dashes.textContent = Array.from({length: word.length}, () => '─').join(' ');
-      span.appendChild(dashes);
-    }
+function renderTitle(all){
+  const el=document.getElementById('title-display'); el.innerHTML='';
+  titleWords.forEach((word,i)=>{
+    const tn=titleNorms[i],revealed=all||revealedNorms.has(tn);
+    const span=document.createElement('span');
+    if(revealed){span.className='title-word '+(all?'won':'revealed');span.textContent=word}
+    else{span.className='title-word hidden';const d=document.createElement('span');d.className='tw-dashes';d.textContent=Array.from({length:word.length},()=>'─').join(' ');span.appendChild(d)}
     el.appendChild(span);
   });
 }
 
-// ============================================================
-//  RENDU EXTRAIT
-// ============================================================
-function renderExtract() {
-  const el = document.getElementById('extract-display');
-  el.innerHTML = '';
-  tokens.forEach(token => {
-    if (!/[a-zA-ZÀ-ÿ]/.test(token)) {
-      el.appendChild(document.createTextNode(token));
-      return;
-    }
-    const tn = norm(token);
-    const isTitleWord = titleNorms.includes(tn);
-    if (revealedNorms.has(tn)) {
-      const span = document.createElement('span');
-      span.className = 'w-revealed ' + (isTitleWord ? 'is-title' : 'normal') + (tn === lastNorm ? ' fresh' : '');
-      span.textContent = token;
-      el.appendChild(span);
-    } else {
-      const span = document.createElement('span');
-      span.className = 'w-hidden';
-      const inner = document.createElement('span');
-      inner.className = 'w-hidden-inner';
-      inner.textContent = token.length;
-      span.appendChild(inner);
-      el.appendChild(span);
+function renderExtract(){
+  const el=document.getElementById('extract-display'); el.innerHTML='';
+  tokens.forEach(token=>{
+    if(!/[a-zA-ZÀ-ÿ]/.test(token)){el.appendChild(document.createTextNode(token));return}
+    const tn=norm(token),isTitle=titleNorms.includes(tn);
+    if(revealedNorms.has(tn)){
+      const span=document.createElement('span');
+      span.className='w-revealed '+(isTitle?'is-title':'normal')+(tn===lastNorm?' fresh':'');
+      span.textContent=token;el.appendChild(span);
+    }else{
+      const span=document.createElement('span'); span.className='w-hidden';
+      const inner=document.createElement('span'); inner.className='w-hidden-inner'; inner.textContent=token.length;
+      span.style.minWidth=Math.max(1.6,token.length*.52)+'ch'; span.appendChild(inner); el.appendChild(span);
     }
   });
 }
 
-// ============================================================
-//  COMPTEURS
-// ============================================================
-function updateCounters() {
-  // Combien de tokens-mots sont révélés ?
-  let revCount = 0;
-  tokens.forEach(t => { if (/[a-zA-ZÀ-ÿ]/.test(t) && revealedNorms.has(norm(t))) revCount++; });
-  const pct = totalWordCount > 0 ? Math.round(revCount / totalWordCount * 100) : 0;
-  document.getElementById('count-guesses').textContent = totalGuesses;
-  document.getElementById('count-pct').textContent = pct + '%';
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-text').textContent = `${pct}% de l'article révélé`;
+function updateCounters(){
+  const pct=wordTokenCount>0?Math.round(revealedNorms.size/wordTokenCount*100):0;
+  document.getElementById('count-guesses').textContent=totalGuesses;
+  document.getElementById('count-pct').textContent=pct+'%';
+  document.getElementById('progress-bar').style.width=pct+'%';
+  updateProgressText();
 }
 
-// ============================================================
-//  INIT RENDER
-// ============================================================
-renderTitle(false);
-renderExtract();
-updateCounters();
-
-// ============================================================
-//  SOUMETTRE
-// ============================================================
-function submitWord() {
-  if (gameOver) return;
-  const input = document.getElementById('word-input');
-  const raw = input.value.trim();
-  if (!raw) return;
-
-  const normInput = norm(raw);
-  if (!normInput) { input.value = ''; return; }
-
-  // Déjà proposé ?
-  if (guessedNorms.has(normInput)) {
-    showToast('Déjà proposé !');
-    input.classList.add('shake');
-    setTimeout(() => input.classList.remove('shake'), 380);
-    input.value = ''; return;
+function submitWord(){
+  if(gameOver)return;
+  const input=document.getElementById('word-input'),raw=input.value.trim();
+  if(!raw)return;
+  const normInput=norm(raw);
+  if(!normInput){input.value='';return}
+  if(guessedNorms.has(normInput)){
+    showToast(t('already'));input.classList.add('shake');
+    setTimeout(()=>input.classList.remove('shake'),380);input.value='';return;
   }
-
-  guessedNorms.add(normInput);
-  totalGuesses++;
-
-  // Compte les occurrences dans l'extrait
-  let occurrences = 0;
-  tokens.forEach(t => { if (/[a-zA-ZÀ-ÿ]/.test(t) && norm(t) === normInput) occurrences++; });
-
-  const found = occurrences > 0;
-  if (found) {
-    revealedNorms.add(normInput);
-    lastNorm = normInput;
-  } else {
-    lastNorm = null;
-  }
-
-  // Chip historique
-  addChip(raw, found, false);
-
-  // Re-render
-  renderExtract();
-
-  // Vérifier si le titre est trouvé — soit mot à mot, soit titre complet d'un coup
-  const fullTitleTyped = normInput === norm(ART.title);
-  const allTitleWordsFound = titleNorms.every(tn => revealedNorms.has(tn));
-  const titleFound = fullTitleTyped || allTitleWordsFound;
-
-  renderTitle(false);
-  updateCounters();
-
-  if (found) {
-    const msg = occurrences === 1
-      ? `✨ "${raw}" — 1 fois dans l'article !`
-      : `✨ "${raw}" — ${occurrences} fois dans l'article !`;
-    showToast(msg);
-  } else {
-    showToast(`❌ "${raw}" absent de l'article`);
-  }
-
-  if (titleFound) {
-    addChip(ART.title, true, true);
-    setTimeout(() => endGame(true), 350);
-  }
-
-  input.value = '';
-  input.focus();
+  guessedNorms.add(normInput);totalGuesses++;
+  let occ=0;tokens.forEach(tok=>{if(/[a-zA-ZÀ-ÿ]/.test(tok)&&norm(tok)===normInput)occ++});
+  const found=occ>0;
+  if(found){revealedNorms.add(normInput);lastNorm=normInput}else lastNorm=null;
+  addChip(raw,found,false);renderExtract();
+  const fullTyped=normInput===norm(ART.title);
+  const allFound=titleNorms.every(tn=>revealedNorms.has(tn));
+  renderTitle(false);updateCounters();
+  if(found)showToast(occ===1?`✨ "${raw}" — ${lang==='en'?'found once!':'1 fois dans l\'article !'}`:`✨ "${raw}" — ${occ} ${lang==='en'?'times!':'fois !'}`);
+  else showToast(`❌ "${raw}" ${lang==='en'?'not in the article':'absent de l\'article'}`);
+  if(fullTyped||allFound){addChip(ART.title,true,true);setTimeout(()=>endGame(true),350)}
+  input.value='';input.focus();
 }
 
-function addChip(word, found, isTitle) {
-  const hist = document.getElementById('history');
-  const chip = document.createElement('span');
-  chip.className = 'history-chip ' + (isTitle ? 'chip-title' : found ? 'chip-found' : 'chip-miss');
-  chip.textContent = (isTitle ? '🏆 ' : found ? '✓ ' : '✗ ') + word;
-  hist.prepend(chip);
+function addChip(word,found,isTitle){
+  const hist=document.getElementById('history'),chip=document.createElement('span');
+  chip.className='history-chip '+(isTitle?'chip-title':found?'chip-found':'chip-miss');
+  chip.textContent=(isTitle?'🏆 ':found?'✓ ':'✗ ')+word;hist.prepend(chip);
 }
 
-// ============================================================
-//  FIN DE JEU
-// ============================================================
-function endGame(won) {
-  gameOver = true;
-  document.getElementById('input-section').style.opacity = '0.4';
-  document.getElementById('input-section').style.pointerEvents = 'none';
-  document.getElementById('submit-btn').disabled = true;
-  document.getElementById('abandon-btn').style.display = 'none';
-
-  // Tout révéler
-  tokens.forEach(t => { if (/[a-zA-ZÀ-ÿ]/.test(t)) revealedNorms.add(norm(t)); });
-  lastNorm = null;
-  renderExtract();
-  renderTitle(true);
-  updateCounters();
-
-  const score = won ? Math.max(50, 1000 - (totalGuesses - titleNorms.length) * 15) : 0;
-
-  document.getElementById('res-icon').textContent = won ? (score >= 850 ? '🏆' : score >= 600 ? '🎉' : '😊') : '😢';
-  document.getElementById('res-title').textContent = won
-    ? (score >= 850 ? 'Excellent !' : score >= 600 ? 'Bien joué !' : 'Trouvé !')
-    : 'Raté cette fois…';
-  document.getElementById('res-sub').innerHTML = won
-    ? `<strong>${ART.title}</strong><br>Trouvé en <strong>${totalGuesses} mot${totalGuesses>1?'s':''}</strong> proposé${totalGuesses>1?'s':''} · Score : <strong>${score} pts</strong> ✨`
-    : `L'article était <strong>${ART.title}</strong>`;
-  document.getElementById('res-link').href = ART.url;
-  const banner = document.getElementById('result');
-  banner.classList.add('show');
-  banner.scrollIntoView({behavior:'smooth', block:'nearest'});
-
-  const s = JSON.parse(localStorage.getItem('motsdoux-stats') || '{"played":0,"wins":0,"streak":0}');
-  s.played++; if (won) { s.wins++; s.streak++; } else s.streak = 0;
-  localStorage.setItem('motsdoux-stats', JSON.stringify(s));
+function endGame(won){
+  gameOver=true;
+  document.getElementById('input-section').style.opacity='.4';
+  document.getElementById('input-section').style.pointerEvents='none';
+  document.getElementById('submit-btn').disabled=true;
+  document.getElementById('abandon-btn').style.display='none';
+  tokens.forEach(t=>{if(/[a-zA-ZÀ-ÿ]/.test(t))revealedNorms.add(norm(t))});
+  lastNorm=null;renderExtract();renderTitle(true);updateCounters();
+  const score=won?Math.max(50,1000-(totalGuesses-titleNorms.length)*15):0;
+  pendingScore=score;
+  document.getElementById('res-icon').textContent=won?(score>=850?'🏆':score>=600?'🎉':'😊'):'😢';
+  document.getElementById('res-title').textContent=won?(score>=850?(lang==='en'?'Excellent!':'Excellent !'):score>=600?(lang==='en'?'Well done!':'Bien joué !'):(lang==='en'?'Found it!':'Trouvé !')):t('lose');
+  document.getElementById('res-sub').innerHTML=won
+    ?`<strong>${ART.title}</strong> — ${lang==='en'?`found in <strong>${totalGuesses} word${totalGuesses>1?'s':''}</strong> · Score: <strong>${score} pts</strong> ✨`:`trouvé en <strong>${totalGuesses} mot${totalGuesses>1?'s':''}</strong> · Score : <strong>${score} pts</strong> ✨`}`
+    :`${t('lose')} <strong>${ART.title}</strong>`;
+  document.getElementById('res-link').href=ART.url;
+  document.getElementById('res-link').textContent=t('read_wiki');
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'nearest'});
+  const s=JSON.parse(localStorage.getItem('motsdoux-stats')||'{"played":0,"wins":0,"streak":0}');
+  s.played++;if(won){s.wins++;s.streak++}else s.streak=0;
+  localStorage.setItem('motsdoux-stats',JSON.stringify(s));
+  if(won)setTimeout(()=>openScoreModal(),700);
 }
 
-function abandon() {
-  if (gameOver) return;
-  if (!confirm('Abandonner et voir la réponse ?')) return;
+function abandon(){
+  if(gameOver)return;
+  if(!confirm(lang==='en'?'Give up and see the answer?':'Abandonner et voir la réponse ?'))return;
   endGame(false);
 }
 
-document.getElementById('word-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitWord();
+function openScoreModal(){
+  const savedName=localStorage.getItem('md-name')||'';
+  document.getElementById('score-name').value=savedName;
+  document.getElementById('score-modal').classList.add('open');
+}
+async function submitScore(){
+  const name=(document.getElementById('score-name').value.trim()||'Anonyme').slice(0,20);
+  localStorage.setItem('md-name',name);
+  document.getElementById('score-modal').classList.remove('open');
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    let scores=[];
+    try{const r=await window.storage.get(`lb:${today}`,true);if(r)scores=JSON.parse(r.value)}catch(e){}
+    scores.push({name,score:pendingScore,game:'Wiki',ts:Date.now()});
+    await window.storage.set(`lb:${today}`,JSON.stringify(scores),true);
+    showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
+  }catch(e){showToast(lang==='en'?'Could not save score':'Impossible de sauvegarder')}
+}
+function skipScore(){document.getElementById('score-modal').classList.remove('open')}
+document.getElementById('score-name').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
+document.getElementById('word-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitWord()});
+
+function toggleMenu(forceClose){
+  const d=document.getElementById('mobile-drawer'),h=document.getElementById('hamburger');
+  const open=forceClose?false:!d.classList.contains('open');
+  d.classList.toggle('open',open);h.classList.toggle('open',open);
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.nav')&&!e.target.closest('.mobile-drawer'))toggleMenu(true);
 });
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2400);
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);
 }
+
+// INIT
+applyLang();
+renderTitle(false);renderExtract();updateCounters();
 </script>
 </body>
 </html>
