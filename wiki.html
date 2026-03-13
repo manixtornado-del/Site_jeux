@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mot Wikipédia ♡ Mots Doux</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --rose: #f7c5d5; --rose-d: #e8809e; --rose-l: #fdeef4;
+  --lavande: #d4c5f7; --lavande-d: #9b82e0; --lavande-l: #f0ecfd;
+  --menthe: #c5f0e0; --menthe-d: #5bc9a0; --menthe-l: #edfbf5;
+  --crème: #fef8f0; --beige: #f5ede0;
+  --brun-d: #7a5c4a; --brun: #b08a72;
+  --blanc: #ffffff; --texte: #4a3728; --texte-doux: #8a6d5e;
+  --shadow: rgba(180,130,110,0.15);
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Quicksand', sans-serif;
+  background: var(--crème); color: var(--texte);
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(212,197,247,0.25) 0%, transparent 50%),
+    radial-gradient(circle at 80% 90%, rgba(197,240,224,0.2) 0%, transparent 50%);
+  pointer-events: none; z-index: 0;
+}
+
+/* NAV */
+.nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(254,248,240,0.88); backdrop-filter: blur(12px);
+  border-bottom: 1.5px solid rgba(180,130,110,0.1);
+  padding: 0.75rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { font-family: 'Nunito', sans-serif; font-size: 1.2rem; font-weight: 800; color: var(--texte); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; }
+.nav-logo span { color: var(--rose-d); }
+.nav-links { display: flex; gap: 0.4rem; list-style: none; }
+.nav-links a { text-decoration: none; font-size: 0.82rem; font-weight: 600; color: var(--texte-doux); padding: 0.3rem 0.75rem; border-radius: 100px; transition: background 0.15s, color 0.15s; border: 1.5px solid transparent; }
+.nav-links a:hover { background: var(--beige); color: var(--texte); }
+.nav-links a.active { background: var(--blanc); color: var(--texte); border-color: rgba(180,130,110,0.2); box-shadow: 0 2px 8px var(--shadow); }
+
+/* LAYOUT */
+.page { position: relative; z-index: 10; max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+.page-header { text-align: center; margin-bottom: 1.5rem; }
+.page-icon {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--blanc); display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.7rem; box-shadow: 0 4px 16px var(--shadow), 0 0 0 5px rgba(212,197,247,0.35);
+  margin-bottom: 0.7rem; animation: bobble 3s ease-in-out infinite;
+}
+@keyframes bobble { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+.page-title { font-family: 'Nunito', sans-serif; font-size: 1.8rem; font-weight: 800; color: var(--texte); }
+.page-sub { font-size: 0.88rem; color: var(--texte-doux); margin-top: 0.3rem; font-weight: 500; }
+
+.info-row { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.info-pill { background: var(--blanc); border-radius: 100px; padding: 0.3rem 0.85rem; font-size: 0.78rem; font-weight: 600; color: var(--texte-doux); box-shadow: 0 2px 8px var(--shadow); border: 1.5px solid rgba(180,130,110,0.1); }
+
+/* SCORE VISUEL */
+.score-track {
+  display: flex; gap: 0.4rem; justify-content: center; margin-bottom: 1.5rem;
+}
+.score-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid rgba(180,130,110,0.2);
+  background: var(--blanc); display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: background 0.3s, border-color 0.3s;
+}
+.score-dot.used   { background: var(--lavande); border-color: var(--lavande-d); }
+.score-dot.won    { background: var(--menthe);  border-color: var(--menthe-d); }
+.score-dot.active { border-color: var(--lavande-d); box-shadow: 0 0 0 3px rgba(155,130,224,0.25); }
+
+/* EXTRAIT WIKIPEDIA */
+.wiki-card {
+  background: var(--blanc); border-radius: 20px;
+  padding: 1.4rem 1.5rem; margin-bottom: 1.25rem;
+  box-shadow: 0 4px 20px var(--shadow);
+  border: 1.5px solid rgba(180,130,110,0.1);
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.wiki-card-header {
+  display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem;
+}
+.wiki-chip {
+  background: var(--lavande-l); color: var(--lavande-d);
+  border-radius: 100px; padding: 0.25rem 0.8rem;
+  font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.indice-num { font-size: 0.78rem; font-weight: 600; color: var(--texte-doux); margin-left: auto; }
+
+.wiki-title-area { margin-bottom: 0.9rem; }
+.wiki-title-label { font-size: 0.75rem; font-weight: 600; color: var(--texte-doux); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.35rem; }
+.wiki-title-hidden {
+  display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center;
+}
+.title-block {
+  height: 26px; border-radius: 6px; background: var(--beige);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 800;
+  color: var(--texte); padding: 0 0.5rem; min-width: 28px;
+  transition: background 0.3s, color 0.3s;
+}
+.title-block.revealed { background: var(--lavande); color: var(--lavande-d); }
+.title-block.separator { background: transparent; color: var(--texte-doux); font-size: 1rem; }
+
+.wiki-extract {
+  font-size: 0.9rem; line-height: 1.7; color: var(--texte); font-weight: 500;
+  position: relative;
+}
+.wiki-extract.blurred { filter: blur(5px); user-select: none; transition: filter 0.5s; }
+.blur-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(254,248,240,0.4);
+  font-size: 0.82rem; font-weight: 600; color: var(--texte-doux);
+  border-radius: 8px;
+}
+
+/* MASQUÉ word reveal */
+.hidden-word {
+  display: inline-block;
+  background: var(--beige); border-radius: 4px;
+  padding: 0 4px; color: transparent;
+  user-select: none; min-width: 40px;
+}
+
+/* SAISIE */
+.guess-section { margin-bottom: 1.25rem; }
+.guess-label { font-size: 0.8rem; font-weight: 600; color: var(--texte-doux); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.guess-row { display: flex; gap: 0.6rem; }
+.guess-input {
+  flex: 1; height: 48px; border-radius: 14px;
+  border: 2px solid rgba(180,130,110,0.25);
+  background: var(--blanc);
+  font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 700;
+  color: var(--texte); padding: 0 1rem;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  text-transform: uppercase;
+}
+.guess-input::placeholder { text-transform: none; font-weight: 400; font-size: 0.9rem; color: var(--brun); opacity: 0.6; }
+.guess-input:focus { border-color: var(--lavande-d); box-shadow: 0 0 0 3px rgba(155,130,224,0.2); }
+
+.btn {
+  background: var(--texte); color: var(--blanc);
+  border: none; border-radius: 14px;
+  padding: 0 1.3rem; height: 48px;
+  font-family: 'Quicksand', sans-serif; font-size: 0.92rem; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, transform 0.15s;
+  white-space: nowrap; display: inline-flex; align-items: center; gap: 0.35rem;
+}
+.btn:hover { background: var(--brun-d); transform: scale(1.02); }
+.btn:active { transform: scale(0.97); }
+.btn-outline { background: transparent; color: var(--texte-doux); border: 1.5px solid rgba(180,130,110,0.3); }
+.btn-outline:hover { background: var(--beige); transform: scale(1.02); }
+
+/* Indice bouton */
+.hint-btn {
+  width: 100%; padding: 0.7rem;
+  background: var(--lavande-l); color: var(--lavande-d);
+  border: 1.5px solid rgba(155,130,224,0.3);
+  border-radius: 14px; font-family: 'Quicksand', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s, transform 0.1s;
+  margin-bottom: 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.hint-btn:hover { background: var(--lavande); transform: scale(1.01); }
+.hint-btn:disabled { opacity: 0.4; cursor: default; transform: none; }
+
+/* Historique essais */
+.guesses-history { margin-bottom: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.guess-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.9rem; border-radius: 12px;
+  font-size: 0.88rem; font-weight: 600;
+  animation: slideIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+.guess-item.wrong { background: var(--rose-l); color: var(--rose-d); border: 1px solid rgba(232,128,158,0.25); }
+.guess-item.correct { background: var(--menthe-l); color: var(--menthe-d); border: 1px solid rgba(91,201,160,0.3); }
+
+/* Résultat */
+.result-banner {
+  display: none; text-align: center;
+  background: var(--blanc); border-radius: 20px; padding: 1.5rem;
+  box-shadow: 0 4px 20px var(--shadow); border: 1.5px solid rgba(180,130,110,0.12);
+  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); margin-bottom: 1rem;
+}
+@keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.result-banner.show { display: block; }
+.result-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.result-title { font-family: 'Nunito', sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+.result-sub { color: var(--texte-doux); font-size: 0.9rem; margin-bottom: 0.5rem; }
+.result-link { color: var(--lavande-d); font-weight: 600; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem; margin-bottom: 1rem; }
+.result-link:hover { text-decoration: underline; }
+.result-btns { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+/* Toast */
+.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--texte); color: var(--blanc); padding: 0.7rem 1.4rem; border-radius: 100px; font-weight: 600; font-size: 0.9rem; z-index: 200; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; white-space: nowrap; pointer-events: none; }
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+@media (max-width: 480px) {
+  .guess-row { flex-direction: column; }
+  .btn { height: 44px; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">🌸 Mots <span>Doux</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Accueil</a></li>
+    <li><a href="sutom.html">🔤 Sutom</a></li>
+    <li><a href="wiki.html" class="active">📖 Wikipédia</a></li>
+  </ul>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div class="page-icon">📖</div>
+    <h1 class="page-title">Mot Wikipédia</h1>
+    <p class="page-sub">Devine l'article du jour grâce aux indices ✨</p>
+  </div>
+
+  <div class="info-row">
+    <span class="info-pill" id="pill-date">📅 chargement…</span>
+    <span class="info-pill" id="pill-score">⭐ Score max : 1000</span>
+    <span class="info-pill" id="pill-tries">💡 5 tentatives</span>
+  </div>
+
+  <!-- Suivi progression -->
+  <div class="score-track" id="score-track"></div>
+
+  <!-- Carte Wikipedia -->
+  <div class="wiki-card" id="wiki-card">
+    <div class="wiki-card-header">
+      <span class="wiki-chip">📖 Wikipédia</span>
+      <span class="indice-num" id="indice-num">Indice 1 / 5</span>
+    </div>
+
+    <div class="wiki-title-area">
+      <div class="wiki-title-label">Le titre à trouver :</div>
+      <div class="wiki-title-hidden" id="title-display"></div>
+    </div>
+
+    <div style="margin-bottom:0.4rem; font-size:0.75rem; font-weight:600; color:var(--texte-doux); text-transform:uppercase; letter-spacing:0.08em;">
+      Extrait Wikipédia :
+    </div>
+    <div class="wiki-extract" id="wiki-extract">
+      <span id="extract-text"></span>
+    </div>
+  </div>
+
+  <!-- Résultat -->
+  <div class="result-banner" id="result">
+    <div class="result-icon" id="res-icon">🎉</div>
+    <div class="result-title" id="res-title">Bravo !</div>
+    <div class="result-sub" id="res-sub"></div>
+    <a class="result-link" id="res-link" href="#" target="_blank">🔗 Voir sur Wikipédia →</a>
+    <div class="result-btns">
+      <a href="sutom.html" class="btn">🔤 Jouer à Sutom</a>
+      <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
+    </div>
+  </div>
+
+  <!-- Historique essais -->
+  <div class="guesses-history" id="history"></div>
+
+  <!-- Saisie -->
+  <div class="guess-section" id="guess-section">
+    <div class="guess-label">Ta réponse</div>
+    <div class="guess-row">
+      <input class="guess-input" id="guess-input" type="text" placeholder="Entre le titre de l'article…" autocomplete="off" autocorrect="off" spellcheck="false" />
+      <button class="btn" onclick="submitGuess()">Valider ✓</button>
+    </div>
+  </div>
+
+  <button class="hint-btn" id="hint-btn" onclick="showNextHint()">💡 Indice suivant (−200 pts)</button>
+
+  <div style="text-align:center">
+    <a href="index.html" class="btn btn-outline" style="display:inline-flex;text-decoration:none">← Retour à l'accueil</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== BASE DE DONNÉES d'articles Wikipédia =====
+const ARTICLES = [
+  {
+    title: "Tour Eiffel",
+    extract: "La tour Eiffel est une tour en fer puddlé de 330 mètres de hauteur construite à Paris par Gustave Eiffel pour l'Exposition universelle de 1889. Elle est aujourd'hui le monument le plus visité de France, avec plus de sept millions de visiteurs chaque année.",
+    hints: [
+      "C'est un monument emblématique situé à Paris.",
+      "Elle a été construite en 1889 à l'occasion d'une exposition internationale.",
+      "Elle est en fer et mesure plus de 300 mètres de hauteur.",
+      "Elle porte le nom de son créateur, un ingénieur français.",
+      "Elle se trouve au bord de la Seine, dans le 7ème arrondissement."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Tour_Eiffel"
+  },
+  {
+    title: "Chocolat",
+    extract: "Le chocolat est un aliment produit à partir des fèves du cacaoyer. Riche en nutriments et en antioxydants, il est consommé dans le monde entier sous diverses formes : tablettes, poudre, boisson chaude. La Belgique, la Suisse et la France sont réputées pour leur chocolat de haute qualité.",
+    hints: [
+      "C'est un aliment apprécié dans le monde entier.",
+      "Il est fabriqué à partir des graines d'un arbre tropical.",
+      "Il existe en version noir, au lait ou blanc.",
+      "La Belgique et la Suisse sont célèbres pour en produire.",
+      "Il fond à 37°C, juste à la température du corps humain."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Chocolat"
+  },
+  {
+    title: "Versailles",
+    extract: "Versailles est une commune française, chef-lieu du département des Yvelines, connue dans le monde entier pour son château royal et ses jardins à la française. Le château de Versailles fut la résidence des rois de France de Louis XIV à Louis XVI et est aujourd'hui classé au patrimoine mondial de l'UNESCO.",
+    hints: [
+      "C'est une ville française située en Île-de-France.",
+      "Elle abrite un célèbre palais royal et ses jardins.",
+      "Les rois de France y résidaient avant la Révolution.",
+      "Louis XIV, le Roi-Soleil, en fit sa résidence principale.",
+      "Ses jardins à la française ont été dessinés par Le Nôtre."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Versailles"
+  },
+  {
+    title: "Boulangerie",
+    extract: "Une boulangerie est un commerce spécialisé dans la fabrication et la vente de pain et de viennoiseries. En France, le terme est protégé par la loi : seuls les artisans qui fabriquent leur pain sur place peuvent s'appeler boulangers. La baguette, emblème de ce commerce, a été inscrite au patrimoine immatériel de l'UNESCO en 2022.",
+    hints: [
+      "C'est un type de commerce très courant en France.",
+      "On y vend du pain, des croissants et des viennoiseries.",
+      "La loi française en réglemente strictement le nom.",
+      "La baguette, son produit phare, est un symbole national.",
+      "Le terme vient du mot 'boule', forme traditionnelle du pain."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Boulangerie"
+  },
+  {
+    title: "Lavande",
+    extract: "La lavande est un sous-arbrisseau aromatique de la famille des Lamiacées, originaire du bassin méditerranéen. Cultivée notamment en Provence, elle est reconnue pour son huile essentielle aux propriétés calmantes et antiseptiques. Les champs de lavande en fleur constituent l'un des paysages les plus photographiés de France.",
+    hints: [
+      "C'est une plante aromatique très connue.",
+      "Elle est cultivée principalement dans le sud de la France.",
+      "Ses fleurs d'un violet caractéristique sont très parfumées.",
+      "Son huile essentielle est utilisée en aromathérapie.",
+      "Les champs de cette plante en Provence sont un spectacle prisé."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Lavande"
+  },
+  {
+    title: "Arc-en-ciel",
+    extract: "Un arc-en-ciel est un phénomène optique et météorologique provoquant l'apparition d'un spectre continu de lumière dans le ciel. Il est causé par la réfraction, la dispersion et la réflexion totale interne de la lumière du soleil à l'intérieur des gouttes d'eau. On y distingue les couleurs rouge, orange, jaune, vert, bleu, indigo et violet.",
+    hints: [
+      "C'est un phénomène naturel que l'on observe dans le ciel.",
+      "Il apparaît généralement après la pluie quand le soleil revient.",
+      "Il affiche les couleurs du spectre lumineux.",
+      "Il est causé par la réfraction de la lumière dans les gouttes d'eau.",
+      "Il est composé de sept couleurs, du rouge au violet."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Arc-en-ciel"
+  },
+  {
+    title: "Musée du Louvre",
+    extract: "Le musée du Louvre est le plus grand musée d'art du monde en superficie. Situé à Paris dans l'ancien palais royal du Louvre, il abrite plus de 35 000 œuvres exposées dont la Joconde de Léonard de Vinci. Il accueille chaque année environ 10 millions de visiteurs.",
+    hints: [
+      "C'est un musée parisien de renommée mondiale.",
+      "Il est installé dans un ancien palais royal.",
+      "Il détient l'une des plus grandes collections d'art au monde.",
+      "La Joconde de Léonard de Vinci y est exposée.",
+      "Sa pyramide de verre, à l'entrée, est devenue emblématique."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Mus%C3%A9e_du_Louvre"
+  },
+  {
+    title: "Pieuvre",
+    extract: "La pieuvre, ou poulpe, est un céphalopode marin possédant huit tentacules munis de ventouses. Réputée pour son intelligence remarquable, elle est capable de résoudre des problèmes complexes, de s'échapper de récipients fermés et de se camoufler instantanément en modifiant la couleur de sa peau.",
+    hints: [
+      "C'est un animal marin que l'on trouve dans tous les océans.",
+      "Elle possède huit membres munis de ventouses.",
+      "Elle est connue pour son intelligence exceptionnelle chez les invertébrés.",
+      "Elle peut changer de couleur pour se camoufler.",
+      "Elle projette de l'encre pour se défendre contre les prédateurs."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Poulpe"
+  },
+  {
+    title: "Montgolfière",
+    extract: "La montgolfière est un aérostat dont la portance est obtenue par chauffage de l'air à l'intérieur d'une enveloppe. Inventée par les frères Montgolfier en 1783, elle permet le premier vol humain de l'histoire. Aujourd'hui, elles sont principalement utilisées pour des activités de loisirs et de tourisme.",
+    hints: [
+      "C'est un moyen de transport aérien très ancien.",
+      "Elle s'élève grâce à de l'air chaud emprisonné dans une enveloppe.",
+      "Elle a permis le tout premier vol humain de l'histoire.",
+      "Elle a été inventée en France au XVIIIe siècle.",
+      "Elle tire son nom de ses inventeurs, deux frères français."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Montgolfi%C3%A8re"
+  },
+  {
+    title: "Fromage",
+    extract: "Le fromage est un aliment obtenu à partir de lait coagulé, affiné ou non. La France est l'un des pays producteurs les plus diversifiés au monde avec plus de 1200 fromages différents recensés. Charles de Gaulle avait un jour déclaré qu'il était impossible de gouverner un pays qui compte autant de fromages.",
+    hints: [
+      "C'est un aliment fabriqué à partir de lait.",
+      "La France en produit plus de mille variétés différentes.",
+      "Il est obtenu par coagulation puis affinage.",
+      "Le brie, le camembert et le roquefort en sont des exemples célèbres.",
+      "De Gaulle en a fait une boutade sur la gouvernabilité de la France."
+    ],
+    url: "https://fr.wikipedia.org/wiki/Fromage"
+  }
+];
+
+// ===== ÉTAT DU JEU =====
+const today = new Date();
+const dayIdx = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+const ARTICLE = ARTICLES[dayIdx % ARTICLES.length];
+const MAX_HINTS = 5;
+const SCORE_PER_HINT = 200;
+const BASE_SCORE = 1000;
+
+let currentHint = 0;
+let triesLeft = MAX_HINTS;
+let gameOver = false;
+let guesses = [];
+let scoreMultiplier = 1;
+
+// Affiche date
+document.getElementById('pill-date').textContent = '📅 ' + today.toLocaleDateString('fr-FR', {weekday:'long',day:'numeric',month:'long'});
+
+// Track visuel
+const track = document.getElementById('score-track');
+for (let i = 0; i < MAX_HINTS; i++) {
+  const dot = document.createElement('div');
+  dot.className = 'score-dot' + (i === 0 ? ' active' : '');
+  dot.textContent = i + 1;
+  dot.id = `dot-${i}`;
+  track.appendChild(dot);
+}
+
+// Titre masqué
+function renderTitle(revealAll = false) {
+  const display = document.getElementById('title-display');
+  display.innerHTML = '';
+  const words = ARTICLE.title.split(' ');
+  words.forEach((word, wi) => {
+    if (wi > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'title-block separator';
+      sep.textContent = ' ';
+      display.appendChild(sep);
+    }
+    const block = document.createElement('span');
+    if (revealAll) {
+      block.className = 'title-block revealed';
+      block.textContent = word;
+    } else {
+      block.className = 'title-block';
+      // Révèle le nombre de caractères
+      block.textContent = '─'.repeat(word.length);
+      block.style.letterSpacing = '2px';
+      block.style.color = 'transparent';
+      block.style.textShadow = '0 0 0 var(--brun)';
+    }
+    display.appendChild(block);
+  });
+}
+
+// Extrait avec mot-clé masqué
+function renderExtract(blurLevel) {
+  const el = document.getElementById('extract-text');
+  // Cache le titre dans l'extrait
+  const safeTitle = ARTICLE.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(safeTitle, 'gi');
+  let text = ARTICLE.extract.replace(regex, `<span class="hidden-word">${'█'.repeat(ARTICLE.title.length)}</span>`);
+  el.innerHTML = text;
+
+  const wrap = document.getElementById('wiki-extract');
+  if (blurLevel > 0) {
+    const blur = Math.max(0, blurLevel * 1.5);
+    wrap.style.filter = `blur(${blur}px)`;
+  } else {
+    wrap.style.filter = 'none';
+  }
+}
+
+function showHint(hintIdx) {
+  const card = document.getElementById('wiki-card');
+  const existing = card.querySelector('.hint-box');
+  if (existing) existing.remove();
+
+  if (hintIdx < ARTICLE.hints.length) {
+    document.getElementById('indice-num').textContent = `Indice ${hintIdx + 1} / ${MAX_HINTS}`;
+    const hint = document.createElement('div');
+    hint.className = 'hint-box';
+    hint.style.cssText = 'margin-top:0.9rem;padding:0.7rem 0.9rem;background:var(--lavande-l);border-radius:12px;border:1px solid rgba(155,130,224,0.25);font-size:0.88rem;font-weight:600;color:var(--lavande-d);';
+    hint.innerHTML = `💡 <em>${ARTICLE.hints[hintIdx]}</em>`;
+    card.appendChild(hint);
+  }
+}
+
+function updateScore() {
+  const remaining = BASE_SCORE - (currentHint * SCORE_PER_HINT);
+  document.getElementById('pill-score').textContent = `⭐ Score max : ${Math.max(0, remaining)}`;
+}
+
+function updateDots(tried = false, won = false) {
+  document.querySelectorAll('.score-dot').forEach((d, i) => {
+    d.classList.remove('active', 'used', 'won');
+    if (i < guesses.length) {
+      d.classList.add(won && i === guesses.length - 1 ? 'won' : 'used');
+      d.textContent = won && i === guesses.length - 1 ? '✓' : '✗';
+    } else if (i === guesses.length) {
+      d.classList.add('active');
+    }
+  });
+}
+
+// Init
+renderTitle();
+renderExtract(3);
+showHint(0);
+updateScore();
+document.getElementById('pill-tries').textContent = `💡 ${triesLeft} tentative${triesLeft > 1 ? 's' : ''}`;
+
+// Input enter
+document.getElementById('guess-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitGuess();
+});
+
+function normalize(s) {
+  return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function submitGuess() {
+  if (gameOver) return;
+  const input = document.getElementById('guess-input');
+  const val = input.value.trim();
+  if (!val) { showToast('Entre quelque chose !'); return; }
+
+  const correct = normalize(val) === normalize(ARTICLE.title);
+
+  // Ajouter à l'historique
+  guesses.push({ text: val, correct });
+  const hist = document.getElementById('history');
+  const item = document.createElement('div');
+  item.className = `guess-item ${correct ? 'correct' : 'wrong'}`;
+  item.innerHTML = correct
+    ? `✅ <strong>${val}</strong> — Bonne réponse !`
+    : `❌ <strong>${val}</strong> — Ce n'est pas ça…`;
+  hist.appendChild(item);
+
+  input.value = '';
+
+  if (correct) {
+    updateDots(true, true);
+    endGame(true);
+  } else {
+    triesLeft--;
+    updateDots(true, false);
+
+    if (triesLeft <= 0) {
+      endGame(false);
+    } else {
+      // Révèle plus de l'extrait
+      const blurLeft = Math.max(0, 3 - guesses.length * 0.8);
+      renderExtract(blurLeft);
+      document.getElementById('pill-tries').textContent = `💡 ${triesLeft} tentative${triesLeft > 1 ? 's' : ''}`;
+
+      // Auto hint suivant
+      if (currentHint < MAX_HINTS - 1) {
+        currentHint++;
+        showHint(currentHint);
+        updateScore();
+      }
+      showToast('Pas tout à fait… essaie encore !');
+    }
+  }
+}
+
+function showNextHint() {
+  if (gameOver) return;
+  if (currentHint >= MAX_HINTS - 1) {
+    showToast('Plus d\'indices disponibles !');
+    document.getElementById('hint-btn').disabled = true;
+    return;
+  }
+  currentHint++;
+  showHint(currentHint);
+  updateScore();
+  renderExtract(Math.max(0, 3 - currentHint * 0.7));
+  showToast(`Indice ${currentHint + 1} débloqué !`);
+
+  if (currentHint >= MAX_HINTS - 1) {
+    document.getElementById('hint-btn').disabled = true;
+  }
+}
+
+function endGame(won) {
+  gameOver = true;
+  renderTitle(true);
+  renderExtract(0);
+  document.getElementById('guess-section').style.opacity = '0.4';
+  document.getElementById('guess-section').style.pointerEvents = 'none';
+  document.getElementById('hint-btn').disabled = true;
+
+  const score = won ? Math.max(0, BASE_SCORE - currentHint * SCORE_PER_HINT) : 0;
+
+  const banner = document.getElementById('result');
+  document.getElementById('res-icon').textContent = won ? (score >= 800 ? '🏆' : score >= 600 ? '🎉' : '😊') : '😢';
+  document.getElementById('res-title').textContent = won ? (score >= 800 ? 'Excellent !' : score >= 600 ? 'Bien joué !' : 'Pas mal !') : 'Perdu cette fois…';
+  document.getElementById('res-sub').innerHTML = won
+    ? `<strong>${ARTICLE.title}</strong> — Score : <strong>${score} pts</strong> ✨`
+    : `C'était <strong>${ARTICLE.title}</strong>`;
+  document.getElementById('res-link').href = ARTICLE.url;
+  document.getElementById('res-link').textContent = `🔗 Lire l'article sur Wikipédia →`;
+  banner.classList.add('show');
+
+  updateStats(won, score);
+}
+
+function updateStats(won, score) {
+  const s = JSON.parse(localStorage.getItem('motsdoux-stats') || '{"played":0,"wins":0,"streak":0,"totalScore":0}');
+  s.played++;
+  if (won) { s.wins++; s.streak++; s.totalScore = (s.totalScore || 0) + score; }
+  else { s.streak = 0; }
+  localStorage.setItem('motsdoux-stats', JSON.stringify(s));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>
