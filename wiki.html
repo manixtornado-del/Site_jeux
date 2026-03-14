@@ -148,6 +148,20 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   .hamburger{display:none}
   .mobile-drawer{display:none !important}
 }
+
+/* LANG PICKER MODAL */
+.lang-modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,55,40,.45);z-index:500;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem}
+.lang-modal-overlay.open{display:flex}
+.lang-modal{background:var(--blanc);border-radius:26px;max-width:340px;width:100%;padding:2rem 1.75rem 1.75rem;box-shadow:0 24px 60px rgba(74,55,40,.28);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);text-align:center}
+.lang-modal-icon{font-size:2.6rem;margin-bottom:.6rem}
+.lang-modal-title{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:.3rem;color:var(--texte)}
+.lang-modal-sub{font-size:.84rem;color:var(--texte-doux);font-weight:500;margin-bottom:1.5rem;line-height:1.5}
+.lang-choices{display:flex;gap:.75rem;justify-content:center}
+.lang-choice{flex:1;border:2.5px solid rgba(180,130,110,.2);border-radius:18px;padding:1rem .75rem;cursor:pointer;background:var(--blanc);transition:border-color .18s,transform .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.lang-choice:hover{border-color:var(--rose-d);transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.lang-choice-flag{font-size:2rem;line-height:1}
+.lang-choice-name{font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--texte)}
+.lang-choice-sub{font-size:.72rem;color:var(--texte-doux);font-weight:500}
 </style>
 </head>
 <body>
@@ -331,12 +345,42 @@ let revealedNorms=new Set(),guessedNorms=new Set();
 let totalGuesses=0,gameOver=false,lastNorm=null,pendingScore=0;
 let titleWords=ART.title.split(/\s+/),titleNorms=titleWords.map(norm);
 
-function reinitArticle(){
-  ART=getArticle();tokens=tokenize(ART.extract);
-  wordTokenCount=tokens.filter(t=>/[a-zA-ZÀ-ÿ]/.test(t)).length;
-  revealedNorms=new Set();guessedNorms=new Set();
-  totalGuesses=0;gameOver=false;lastNorm=null;
-  titleWords=ART.title.split(/\s+/);titleNorms=titleWords.map(norm);
+// SAVE / RESTORE STATE
+const WIKI_SAVE_KEY=`wiki-state-${today.toISOString().slice(0,10)}-${lang}`;
+function saveWikiState(){
+  localStorage.setItem(WIKI_SAVE_KEY,JSON.stringify({
+    revealedNorms:[...revealedNorms],
+    guessedNorms:[...guessedNorms],
+    totalGuesses,gameOver,lastNorm,pendingScore,
+    chips:[...document.getElementById('history').children].map(c=>({cls:c.className,text:c.textContent}))
+  }));
+}
+function clearOldWikiStates(){
+  for(const k of Object.keys(localStorage)){
+    if(k.startsWith('wiki-state-')&&k!==WIKI_SAVE_KEY) localStorage.removeItem(k);
+  }
+}
+function restoreWikiState(){
+  clearOldWikiStates();
+  const raw=localStorage.getItem(WIKI_SAVE_KEY);
+  if(!raw) return false;
+  try{
+    const s=JSON.parse(raw);
+    revealedNorms=new Set(s.revealedNorms);
+    guessedNorms=new Set(s.guessedNorms);
+    totalGuesses=s.totalGuesses;
+    gameOver=s.gameOver;
+    lastNorm=s.lastNorm;
+    pendingScore=s.pendingScore||0;
+    const hist=document.getElementById('history');
+    hist.innerHTML='';
+    s.chips.forEach(cd=>{
+      const chip=document.createElement('span');
+      chip.className=cd.cls; chip.textContent=cd.text;
+      hist.appendChild(chip);
+    });
+    return true;
+  }catch(e){localStorage.removeItem(WIKI_SAVE_KEY);return false}
 }
 
 function updateProgressText(){
@@ -398,7 +442,7 @@ function submitWord(){
   addChip(raw,found,false);renderExtract();
   const fullTyped=normInput===norm(ART.title);
   const allFound=titleNorms.every(tn=>revealedNorms.has(tn));
-  renderTitle(false);updateCounters();
+  renderTitle(false);updateCounters();saveWikiState();
   if(found)showToast(occ===1?`✨ "${raw}" — ${lang==='en'?'found once!':'1 fois dans l\'article !'}`:`✨ "${raw}" — ${occ} ${lang==='en'?'times!':'fois !'}`);
   else showToast(`❌ "${raw}" ${lang==='en'?'not in the article':'absent de l\'article'}`);
   if(fullTyped||allFound){addChip(ART.title,true,true);setTimeout(()=>endGame(true),350)}
@@ -413,6 +457,7 @@ function addChip(word,found,isTitle){
 
 function endGame(won){
   gameOver=true;
+  saveWikiState();
   document.getElementById('input-section').style.opacity='.4';
   document.getElementById('input-section').style.pointerEvents='none';
   document.getElementById('submit-btn').disabled=true;
@@ -448,17 +493,19 @@ function openScoreModal(){
   document.getElementById('score-modal').classList.add('open');
 }
 async function submitScore(){
-  const name=(document.getElementById('score-name').value.trim()||'Anonyme').slice(0,20);
+  const name=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
   localStorage.setItem('md-name',name);
   document.getElementById('score-modal').classList.remove('open');
   try{
-    const today=new Date().toISOString().slice(0,10);
-    let scores=[];
-    try{const r=await window.storage.get(`lb:${today}`,true);if(r)scores=JSON.parse(r.value)}catch(e){}
-    scores.push({name,score:pendingScore,game:'Wiki',ts:Date.now()});
-    await window.storage.set(`lb:${today}`,JSON.stringify(scores),true);
+    const res=await fetch('/api/leaderboard',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,score:pendingScore,game:'Wiki'})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Erreur');
     showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
-  }catch(e){showToast(lang==='en'?'Could not save score':'Impossible de sauvegarder')}
+  }catch(e){showToast(lang==='en'?'Could not save score: '+e.message:'Impossible de sauvegarder: '+e.message)}
 }
 function skipScore(){document.getElementById('score-modal').classList.remove('open')}
 document.getElementById('score-name').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
@@ -481,7 +528,37 @@ function showToast(msg){
 
 // INIT
 applyLang();
-renderTitle(false);renderExtract();updateCounters();
+const didRestore=restoreWikiState();
+renderTitle(gameOver);renderExtract();updateCounters();
+if(gameOver){
+  document.getElementById('input-section').style.opacity='.4';
+  document.getElementById('input-section').style.pointerEvents='none';
+  document.getElementById('submit-btn').disabled=true;
+  document.getElementById('abandon-btn').style.display='none';
+  // Restore result banner
+  const score=pendingScore;
+  const won=score>0;
+  document.getElementById('res-icon').textContent=won?(score>=850?'🏆':score>=600?'🎉':'😊'):'😢';
+  document.getElementById('res-title').textContent=won?(score>=850?(lang==='en'?'Excellent!':'Excellent !'):score>=600?(lang==='en'?'Well done!':'Bien joué !'):(lang==='en'?'Found it!':'Trouvé !')):t('lose');
+  document.getElementById('res-sub').innerHTML=won
+    ?`<strong>${ART.title}</strong> — ${lang==='en'?`found in <strong>${totalGuesses} word${totalGuesses>1?'s':''}</strong> · Score: <strong>${score} pts</strong> ✨`:`trouvé en <strong>${totalGuesses} mot${totalGuesses>1?'s':''}</strong> · Score : <strong>${score} pts</strong> ✨`}`
+    :`${t('lose')} <strong>${ART.title}</strong>`;
+  document.getElementById('res-link').href=ART.url;
+  document.getElementById('res-link').textContent=t('read_wiki');
+  document.getElementById('result').classList.add('show');
+}
+
+// LANG PICKER — shown only on first visit (no md-lang saved yet)
+function pickLang(l){
+  document.getElementById('lang-modal').classList.remove('open');
+  setLang(l);
+}
+document.addEventListener('DOMContentLoaded',function(){
+  if(!localStorage.getItem('md-lang')){
+    document.getElementById('lang-modal').classList.add('open');
+  }
+});
+
 </script>
 </body>
 </html>

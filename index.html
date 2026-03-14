@@ -147,6 +147,20 @@ footer{position:relative;z-index:10;text-align:center;padding:1.2rem 1rem;font-s
   .hamburger{display:none}
   .mobile-drawer{display:none !important}
 }
+
+/* LANG PICKER MODAL */
+.lang-modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,55,40,.45);z-index:500;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem}
+.lang-modal-overlay.open{display:flex}
+.lang-modal{background:var(--blanc);border-radius:26px;max-width:340px;width:100%;padding:2rem 1.75rem 1.75rem;box-shadow:0 24px 60px rgba(74,55,40,.28);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);text-align:center}
+.lang-modal-icon{font-size:2.6rem;margin-bottom:.6rem}
+.lang-modal-title{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:.3rem;color:var(--texte)}
+.lang-modal-sub{font-size:.84rem;color:var(--texte-doux);font-weight:500;margin-bottom:1.5rem;line-height:1.5}
+.lang-choices{display:flex;gap:.75rem;justify-content:center}
+.lang-choice{flex:1;border:2.5px solid rgba(180,130,110,.2);border-radius:18px;padding:1rem .75rem;cursor:pointer;background:var(--blanc);transition:border-color .18s,transform .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.lang-choice:hover{border-color:var(--rose-d);transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.lang-choice-flag{font-size:2rem;line-height:1}
+.lang-choice-name{font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--texte)}
+.lang-choice-sub{font-size:.72rem;color:var(--texte-doux);font-weight:500}
 </style>
 </head>
 <body>
@@ -332,9 +346,9 @@ function escHtml(v){ return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&
 async function loadLeaderboard(){
   try{
     const today=new Date().toISOString().slice(0,10);
-    const result=await window.storage.get(`lb:${today}`,true);
-    const scores=result?JSON.parse(result.value):[];
-    renderLb(scores);
+    const res=await fetch(`/api/leaderboard?date=${today}`);
+    const data=await res.json();
+    renderLb(data.scores||[]);
   }catch(e){ renderLb([]); }
 }
 
@@ -376,6 +390,18 @@ document.addEventListener('click',e=>{
 applyLang();
 setInterval(updateCountdown,60000);
 loadLeaderboard();
+
+// LANG PICKER — shown only on first visit (no md-lang saved yet)
+function pickLang(l){
+  document.getElementById('lang-modal').classList.remove('open');
+  setLang(l);
+}
+document.addEventListener('DOMContentLoaded',function(){
+  if(!localStorage.getItem('md-lang')){
+    document.getElementById('lang-modal').classList.add('open');
+  }
+});
+
 </script>
 </body>
 </html>

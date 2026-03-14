@@ -142,6 +142,20 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
   .kb-key{min-width:24px;height:38px;font-size:.72rem}
   .kb-key.wide{min-width:40px}
 }
+
+/* LANG PICKER MODAL */
+.lang-modal-overlay{display:none;position:fixed;inset:0;background:rgba(74,55,40,.45);z-index:500;backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:1rem}
+.lang-modal-overlay.open{display:flex}
+.lang-modal{background:var(--blanc);border-radius:26px;max-width:340px;width:100%;padding:2rem 1.75rem 1.75rem;box-shadow:0 24px 60px rgba(74,55,40,.28);animation:popIn .4s cubic-bezier(.34,1.56,.64,1);text-align:center}
+.lang-modal-icon{font-size:2.6rem;margin-bottom:.6rem}
+.lang-modal-title{font-family:'Nunito',sans-serif;font-size:1.3rem;font-weight:800;margin-bottom:.3rem;color:var(--texte)}
+.lang-modal-sub{font-size:.84rem;color:var(--texte-doux);font-weight:500;margin-bottom:1.5rem;line-height:1.5}
+.lang-choices{display:flex;gap:.75rem;justify-content:center}
+.lang-choice{flex:1;border:2.5px solid rgba(180,130,110,.2);border-radius:18px;padding:1rem .75rem;cursor:pointer;background:var(--blanc);transition:border-color .18s,transform .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.lang-choice:hover{border-color:var(--rose-d);transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.lang-choice-flag{font-size:2rem;line-height:1}
+.lang-choice-name{font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--texte)}
+.lang-choice-sub{font-size:.72rem;color:var(--texte-doux);font-weight:500}
 </style>
 </head>
 <body>
@@ -261,14 +275,28 @@ function applyLang(){
 function setLang(l){lang=l;localStorage.setItem('md-lang',l);applyLang();toggleMenu(true)}
 
 // GAME
-const WORDS=["MAISON","JARDIN","SOLEIL","MOUTON","CANARD","PIERRE","ARBRES","BALCON","BEAUTE","MANGER","DORMIR","FACILE","RAPIDE","HERBES","CHEMIN","NUAGES","FLEURS","CHARME","BRAISE","SAVOIR","VALISE","MIROIR","DESERT","VOYAGE","PAROLE","NATURE","PLUMES","CANAPE","BUREAU","MARCHE","BATEAU","AVENIR","BOUGIE","CHAUDE","FROIDE","CHEVRE","LIERRE","MENTHE","ORANGE","CERISE","BANANE","MANGUE","CASQUE","FLECHE","NUANCE","TRUITE","SAUMON","JARRES","BOUTON","CRAYON","CAHIER","RIDEAU","CHAISE","DOUCHE","AMUSER","CAMION","CARTON","CHATON","COQUET","DANSER","DEBOUT","DEVANT","DOMINO","FANION","FIABLE","GLOIRE","GRENAT","HILARE","JURONS","LACUNE","LEVIER","MAILLE","MANOIR","MIRAGE","MODELE","MOUSSE","MUSEAU","NAITRE","NIVEAU","NODULE","NOUGAT","OEUVRE","OISEAU"];
+const WORDS_FR=["MAISON","JARDIN","SOLEIL","MOUTON","CANARD","PIERRE","ARBRES","BALCON","BEAUTE","MANGER","DORMIR","FACILE","RAPIDE","HERBES","CHEMIN","NUAGES","FLEURS","CHARME","BRAISE","SAVOIR","VALISE","MIROIR","DESERT","VOYAGE","PAROLE","NATURE","PLUMES","CANAPE","BUREAU","MARCHE","BATEAU","AVENIR","BOUGIE","CHAUDE","FROIDE","CHEVRE","LIERRE","MENTHE","ORANGE","CERISE","BANANE","MANGUE","CASQUE","FLECHE","NUANCE","TRUITE","SAUMON","JARRES","BOUTON","CRAYON","CAHIER","RIDEAU","CHAISE","DOUCHE","AMUSER","CAMION","CARTON","CHATON","COQUET","DANSER","DEBOUT","DEVANT","DOMINO","FANION","FIABLE","GLOIRE","GRENAT","HILARE","JURONS","LACUNE","LEVIER","MAILLE","MANOIR","MIRAGE","MODELE","MOUSSE","MUSEAU","NAITRE","NIVEAU","NODULE","NOUGAT","OEUVRE","OISEAU"];
+const WORDS_EN=["CHAIR","DREAM","FLAME","GRACE","HEART","IVORY","JEWEL","KNIFE","LEMON","MAPLE","NIGHT","OLIVE","PEARL","QUEEN","RIVER","STORM","TIGER","VIOLA","WATER","APPLE","BLAZE","CRANE","DANCE","EAGLE","FAIRY","GLOBE","HASTE","JAZZY","KNACK","LIGHT","MIRTH","NYMPH","OAKEN","PRISM","QUEST","ROBIN","SWORD","THORN","UMBRA","VENOM","WITCH","AXIOM","BRAVE","CELLO","DWARF","EMBER","FROST","GRAIL","HERON","JOUST","KARMA","LUSTY","MAGIC","NOBLE","OTTER","PLUME","QUOTE","RAVEN","SPIRE","TALON","UNITE","VAGUE","BLOOM","CLOAK","DINGO","ENVOY","FLAIR","HAZEL","IRONY","JELLY","KAYAK","SCAPE","TROVE","GLOOM","PLAID","SHAWL","PIXEL","OXIDE","BLUNT","CRISP","TRYST"];
 const today=new Date();
 const dayIdx=Math.floor((today-new Date(today.getFullYear(),0,0))/86400000);
+const WORDS=lang==='en'?WORDS_EN:WORDS_FR;
 const WORD=WORDS[dayIdx%WORDS.length];
 const WORD_LEN=WORD.length, MAX=6;
 let curRow=0,curCol=1,curGuess=[WORD[0],...Array(WORD_LEN-1).fill('')],gameOver=false;
 const keyState={};
 let pendingScore=0;
+
+// SAVE / RESTORE STATE
+const SAVE_KEY=`sutom-state-${today.toISOString().slice(0,10)}-${lang}`;
+function saveState(){
+  const rows=cells.map(row=>row.map(c=>({text:c.textContent,cls:[...c.classList].filter(x=>['correct','present','absent','filled','given'].includes(x))})));
+  localStorage.setItem(SAVE_KEY,JSON.stringify({curRow,curCol,curGuess,gameOver,rows,keyState:Object.fromEntries(Object.entries(keyState).map(([k,v])=>[k,v.state]))}));
+}
+function clearOldStates(){
+  for(const k of Object.keys(localStorage)){
+    if(k.startsWith('sutom-state-')&&k!==SAVE_KEY) localStorage.removeItem(k);
+  }
+}
 
 function updateTriesPill(){
   const n=MAX-curRow;
@@ -307,6 +335,51 @@ ROWS.forEach(row=>{
   kb.appendChild(rowEl);
 });
 
+// RESTORE SAVED STATE
+(function restoreState(){
+  clearOldStates();
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw) return;
+  try{
+    const s=JSON.parse(raw);
+    curRow=s.curRow; curCol=s.curCol; curGuess=s.curGuess; gameOver=s.gameOver;
+    s.rows.forEach((row,r)=>row.forEach((cd,c)=>{
+      const cell=cells[r][c];
+      cell.textContent=cd.text;
+      cell.className='cell';
+      cd.cls.forEach(cl=>cell.classList.add(cl));
+    }));
+    if(!gameOver){
+      cells[curRow].forEach(c=>c.classList.add('active-row'));
+    }
+    Object.entries(s.keyState||{}).forEach(([k,state])=>{
+      if(keyState[k]&&state!=='unused'){
+        keyState[k].state=state;
+        keyState[k].el.className=`kb-key ${state}`;
+      }
+    });
+    if(gameOver) restoreResultBanner();
+  }catch(e){localStorage.removeItem(SAVE_KEY)}
+})();
+
+function restoreResultBanner(){
+  // Récupère les stats pour retrouver won/curRow depuis l'état sauvé
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw) return;
+  const s=JSON.parse(raw);
+  // Si toutes les cellules de la dernière ligne jouée sont 'correct' => won
+  const lastPlayedRow=s.curRow-1;
+  if(lastPlayedRow<0) return;
+  const won=lastPlayedRow>=0&&s.rows[lastPlayedRow].every(cd=>cd.cls.includes('correct'));
+  const rowsPlayed=s.curRow;
+  document.getElementById('res-icon').textContent=won?'🎉':'😢';
+  document.getElementById('res-title').textContent=won?(T[lang].wins[rowsPlayed-1]||T[lang].wins[5]):t('lose');
+  document.getElementById('res-word').innerHTML=won
+    ?`${lang==='en'?`Found in <strong>${rowsPlayed} tr${rowsPlayed>1?'ies':'y'}</strong>!`:`Trouvé en <strong>${rowsPlayed} essai${rowsPlayed>1?'s':''}</strong> !`}`
+    :`${lang==='en'?`The word was`:'Le mot était'} <strong>${WORD}</strong>`;
+  document.getElementById('result').classList.add('show');
+}
+
 function handleKey(k){
   if(gameOver)return;
   if(k==='OK'||k==='ENTRÉE')submitGuess();
@@ -321,8 +394,8 @@ document.addEventListener('keydown',e=>{
   else if(/^[A-ZÉÈÊÀÙÛÎÔÇ]$/.test(k))handleKey(norm1(k));
 });
 function norm1(k){return k.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()}
-function addLetter(l){if(curCol>=WORD_LEN)return;curGuess[curCol]=l;cells[curRow][curCol].textContent=l;cells[curRow][curCol].classList.add('filled');curCol++}
-function deleteLetter(){if(curCol<=1)return;curCol--;curGuess[curCol]='';cells[curRow][curCol].textContent='';cells[curRow][curCol].classList.remove('filled')}
+function addLetter(l){if(curCol>=WORD_LEN)return;curGuess[curCol]=l;cells[curRow][curCol].textContent=l;cells[curRow][curCol].classList.add('filled');curCol++;saveState()}
+function deleteLetter(){if(curCol<=1)return;curCol--;curGuess[curCol]='';cells[curRow][curCol].textContent='';cells[curRow][curCol].classList.remove('filled');saveState()}
 function submitGuess(){
   if(curCol<WORD_LEN){shake();showToast(t('not_complete'));return}
   const guess=curGuess.join('');
@@ -344,13 +417,14 @@ function submitGuess(){
     curRow++;curCol=1;curGuess=[WORD[0],...Array(WORD_LEN-1).fill('')];
     if(won)endGame(true);
     else if(last)endGame(false);
-    else{cells[curRow].forEach(c=>c.classList.add('active-row'));cells[curRow][0].textContent=WORD[0];cells[curRow][0].classList.add('given');updateTriesPill()}
+    else{cells[curRow].forEach(c=>c.classList.add('active-row'));cells[curRow][0].textContent=WORD[0];cells[curRow][0].classList.add('given');updateTriesPill();saveState()}
   },WORD_LEN*80+100);
 }
 function shake(){cells[curRow].forEach(c=>{c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')})}
 
 function endGame(won){
   gameOver=true;
+  saveState();
   const score=won?Math.max(100,[1000,900,800,600,400,200][curRow-1]||200):0;
   pendingScore=score;
   document.getElementById('res-icon').textContent=won?'🎉':'😢';
@@ -372,17 +446,19 @@ function openScoreModal(){
   document.getElementById('score-modal').classList.add('open');
 }
 async function submitScore(){
-  const name=(document.getElementById('score-name').value.trim()||'Anonyme').slice(0,20);
+  const name=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
   localStorage.setItem('md-name',name);
   document.getElementById('score-modal').classList.remove('open');
   try{
-    const today=new Date().toISOString().slice(0,10);
-    let scores=[];
-    try{const r=await window.storage.get(`lb:${today}`,true);if(r)scores=JSON.parse(r.value)}catch(e){}
-    scores.push({name,score:pendingScore,game:'Sutom',ts:Date.now()});
-    await window.storage.set(`lb:${today}`,JSON.stringify(scores),true);
+    const res=await fetch('/api/leaderboard',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,score:pendingScore,game:'Sutom'})
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Erreur');
     showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
-  }catch(e){showToast(lang==='en'?'Could not save score':'Impossible de sauvegarder')}
+  }catch(e){showToast(lang==='en'?'Could not save score: '+e.message:'Impossible de sauvegarder: '+e.message)}
 }
 function skipScore(){document.getElementById('score-modal').classList.remove('open')}
 document.getElementById('score-name').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
@@ -404,6 +480,18 @@ function showToast(msg){
 }
 
 applyLang();
+
+// LANG PICKER — shown only on first visit (no md-lang saved yet)
+function pickLang(l){
+  document.getElementById('lang-modal').classList.remove('open');
+  setLang(l);
+}
+document.addEventListener('DOMContentLoaded',function(){
+  if(!localStorage.getItem('md-lang')){
+    document.getElementById('lang-modal').classList.add('open');
+  }
+});
+
 </script>
 </body>
 </html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin ♡ Mots Doux</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#f7c5d5;--rose-d:#e8809e;
+  --lavande:#d4c5f7;--lavande-d:#9b82e0;
+  --menthe:#c5f0e0;--menthe-d:#5bc9a0;
+  --rouge:#fee2e2;--rouge-d:#ef4444;
+  --crème:#fef8f0;--beige:#f5ede0;
+  --brun-d:#7a5c4a;--brun:#b08a72;
+  --blanc:#ffffff;--texte:#4a3728;--texte-doux:#8a6d5e;
+  --shadow:rgba(180,130,110,0.15);
+}
+body{font-family:'Quicksand',sans-serif;background:var(--crème);color:var(--texte);min-height:100vh;padding:2rem 1rem}
+.wrap{max-width:700px;margin:0 auto}
+.title{font-family:'Nunito',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:.3rem}
+.title span{color:var(--rose-d)}
+.sub{color:var(--texte-doux);font-size:.88rem;margin-bottom:1.5rem}
+
+/* LOGIN */
+#login-section{background:var(--blanc);border-radius:20px;padding:1.75rem;box-shadow:0 4px 20px var(--shadow);max-width:360px;margin:4rem auto;text-align:center}
+.login-icon{font-size:2.5rem;margin-bottom:.5rem}
+.login-title{font-family:'Nunito',sans-serif;font-size:1.2rem;font-weight:800;margin-bottom:1rem}
+input[type=password],input[type=date],input[type=text]{
+  width:100%;height:46px;border-radius:12px;border:2px solid rgba(180,130,110,.25);
+  background:var(--beige);font-family:'Nunito',sans-serif;font-size:.95rem;font-weight:600;
+  color:var(--texte);padding:0 1rem;outline:none;margin-bottom:.75rem;transition:border-color .15s
+}
+input:focus{border-color:var(--rose-d)}
+.btn{background:var(--texte);color:var(--blanc);border:none;border-radius:100px;padding:.55rem 1.4rem;
+  font-family:'Quicksand',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;
+  transition:background .2s,transform .15s;display:inline-flex;align-items:center;gap:.3rem}
+.btn:hover{background:var(--brun-d);transform:scale(1.02)}
+.btn-sm{padding:.35rem .9rem;font-size:.78rem}
+.btn-danger{background:var(--rouge-d)}
+.btn-danger:hover{background:#dc2626}
+.btn-outline{background:transparent;color:var(--texte-doux);border:1.5px solid rgba(180,130,110,.3)}
+.btn-outline:hover{background:var(--beige)}
+.error-msg{color:var(--rouge-d);font-size:.83rem;margin-top:.4rem;font-weight:600}
+
+/* MAIN PANEL */
+#admin-section{display:none}
+.card{background:var(--blanc);border-radius:20px;padding:1.25rem 1.2rem;box-shadow:0 4px 20px var(--shadow);border:1.5px solid rgba(180,130,110,.1);margin-bottom:1.25rem}
+.card-title{font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem}
+.filter-row{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem}
+.filter-row label{font-size:.78rem;font-weight:700;color:var(--texte-doux)}
+.filter-row select{height:38px;border-radius:10px;border:2px solid rgba(180,130,110,.2);background:var(--beige);
+  font-family:'Quicksand',sans-serif;font-size:.82rem;font-weight:600;color:var(--texte);padding:0 .7rem;outline:none;cursor:pointer}
+.filter-row input[type=date]{width:auto;height:38px;margin-bottom:0}
+
+/* TABLE */
+.lb-table{width:100%;border-collapse:collapse}
+.lb-table th{font-size:.72rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.08em;padding:.5rem .6rem;text-align:left;border-bottom:2px solid rgba(180,130,110,.12)}
+.lb-table td{padding:.55rem .6rem;font-size:.86rem;border-bottom:1px solid rgba(180,130,110,.07);vertical-align:middle}
+.lb-table tr:last-child td{border-bottom:none}
+.rank-badge{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'Nunito',sans-serif;font-size:.78rem;font-weight:800}
+.rank-badge.gold{background:#fde68a;color:#b45309}
+.rank-badge.silver{background:#e2e8f0;color:#475569}
+.rank-badge.bronze{background:#fcd9bd;color:#9a3412}
+.rank-badge.other{background:var(--beige);color:var(--texte-doux)}
+.game-badge{font-size:.7rem;font-weight:700;padding:.18rem .55rem;border-radius:100px;background:var(--beige);color:var(--brun)}
+.game-badge.sutom{background:rgba(247,197,213,.4);color:var(--rose-d)}
+.game-badge.wiki{background:rgba(212,197,247,.4);color:var(--lavande-d)}
+.score-val{font-family:'Nunito',sans-serif;font-weight:800;color:var(--rose-d)}
+.ts-cell{font-size:.72rem;color:var(--texte-doux)}
+.empty-row td{text-align:center;padding:1.5rem;color:var(--texte-doux);font-size:.88rem}
+.loading-row td{text-align:center;padding:1.5rem;color:var(--texte-doux);font-size:.85rem;font-style:italic}
+
+/* BANLIST */
+.banlist-wrap{display:flex;flex-direction:column;gap:.45rem}
+.banlist-item{display:flex;align-items:center;justify-content:space-between;padding:.45rem .8rem;
+  background:var(--beige);border-radius:10px;font-size:.86rem;font-weight:600}
+.add-row{display:flex;gap:.5rem;margin-top:.75rem}
+.add-row input{flex:1;margin-bottom:0}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);
+  background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;
+  font-weight:600;font-size:.88rem;z-index:300;opacity:0;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:100px}
+.tag-warn{background:var(--rouge);color:var(--rouge-d)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-section">
+  <div class="login-icon">🔐</div>
+  <div class="login-title">Panel Administrateur</div>
+  <input type="password" id="pwd-input" placeholder="Mot de passe admin…" />
+  <div id="login-error" class="error-msg" style="display:none"></div>
+  <button class="btn" onclick="login()" style="width:100%;justify-content:center">Connexion</button>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-section">
+  <div class="wrap">
+    <h1 class="title">🌸 Mots <span>Doux</span> — Admin</h1>
+    <p class="sub">Gestion du leaderboard et des pseudos</p>
+
+    <!-- LEADERBOARD VIEWER -->
+    <div class="card">
+      <div class="card-title">🏆 Scores du leaderboard</div>
+      <div class="filter-row">
+        <label>Date :</label>
+        <input type="date" id="filter-date" />
+        <label>Jeu :</label>
+        <select id="filter-game">
+          <option value="">Tous</option>
+          <option value="Sutom">Sutom</option>
+          <option value="Wiki">Wiki</option>
+        </select>
+        <button class="btn btn-sm" onclick="loadScores()">🔄 Actualiser</button>
+      </div>
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Pseudo</th>
+            <th>Jeu</th>
+            <th>Score</th>
+            <th>Heure</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="lb-tbody">
+          <tr class="loading-row"><td colspan="6">Chargement…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BANLIST -->
+    <div class="card">
+      <div class="card-title">🚫 Banlist de pseudos</div>
+      <p style="font-size:.82rem;color:var(--texte-doux);margin-bottom:1rem;line-height:1.5">
+        Les pseudos contenant ces mots seront automatiquement refusés lors de la soumission d'un score.
+        La vérification est insensible à la casse et aux accents.
+      </p>
+      <div class="banlist-wrap" id="banlist-wrap"></div>
+      <div class="add-row">
+        <input type="text" id="ban-input" placeholder="Ajouter un mot banni…" maxlength="30" />
+        <button class="btn btn-sm" onclick="addBan()">➕ Ajouter</button>
+      </div>
+      <p style="font-size:.75rem;color:var(--texte-doux);margin-top:.75rem;font-style:italic">
+        ⚠️ La banlist est stockée localement dans ce navigateur. Pour la rendre permanente,
+        modifiez le tableau <code>BANLIST</code> dans <code>api/leaderboard.js</code> et redéployez.
+      </p>
+    </div>
+
+    <!-- LOGOUT -->
+    <div style="text-align:center;margin-top:1rem">
+      <button class="btn btn-outline btn-sm" onclick="logout()">🚪 Déconnexion</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '/api/leaderboard';
+let adminSecret = '';
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+function login() {
+  const pwd = document.getElementById('pwd-input').value;
+  if (!pwd) return;
+  adminSecret = pwd;
+  sessionStorage.setItem('admin-secret', pwd);
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('admin-section').style.display = 'block';
+  init();
+}
+function logout() {
+  sessionStorage.removeItem('admin-secret');
+  location.reload();
+}
+document.getElementById('pwd-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+// Auto-login si session active
+const saved = sessionStorage.getItem('admin-secret');
+if (saved) {
+  adminSecret = saved;
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('admin-section').style.display = 'block';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+function init() {
+  // Date par défaut = aujourd'hui
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('filter-date').value = today;
+  loadScores();
+  renderBanlist();
+}
+if (saved) init();
+
+// ── SCORES ────────────────────────────────────────────────────────────────────
+let currentScores = [];
+
+async function loadScores() {
+  const date = document.getElementById('filter-date').value;
+  const game = document.getElementById('filter-game').value;
+  const tbody = document.getElementById('lb-tbody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Chargement…</td></tr>';
+  try {
+    const res = await fetch(`${API}?date=${date}`);
+    const data = await res.json();
+    currentScores = data.scores || [];
+    renderScores(currentScores, game, date);
+  } catch (e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">Erreur : ${e.message}</td></tr>`;
+  }
+}
+
+function renderScores(scores, gameFilter, date) {
+  const tbody = document.getElementById('lb-tbody');
+  let filtered = gameFilter ? scores.filter(s => s.game === gameFilter) : scores;
+  filtered = [...filtered].sort((a, b) => b.score - a.score);
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Aucun score pour cette date</td></tr>';
+    return;
+  }
+  const rc = ['gold', 'silver', 'bronze'];
+  tbody.innerHTML = filtered.map((r, i) => {
+    const d = new Date(r.ts);
+    const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `
+    <tr>
+      <td><span class="rank-badge ${rc[i] || 'other'}">${i === 0 ? '👑' : i + 1}</span></td>
+      <td><strong>${escHtml(r.name)}</strong></td>
+      <td><span class="game-badge ${r.game.toLowerCase()}">${escHtml(r.game)}</span></td>
+      <td><span class="score-val">${r.score} pts</span></td>
+      <td class="ts-cell">${time}</td>
+      <td>
+        <button class="btn btn-sm btn-danger" onclick="deleteScore('${escHtml(r.name)}','${r.game}','${date}')">
+          🗑 Supprimer
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteScore(name, game, date) {
+  if (!confirm(`Supprimer le score de « ${name} » (${game}) du ${date} ?`)) return;
+  try {
+    const res = await fetch(API, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, game, date, adminSecret }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showToast('❌ ' + (data.error || 'Erreur')); return; }
+    showToast('✅ Score supprimé');
+    await loadScores();
+  } catch (e) {
+    showToast('❌ ' + e.message);
+  }
+}
+
+// ── BANLIST ───────────────────────────────────────────────────────────────────
+function getBanlist() {
+  const raw = localStorage.getItem('md-admin-banlist');
+  return raw ? JSON.parse(raw) : [
+    'admin','test','fuck','merde','putain','connard','salope','bite',
+    'con','fdp','pute','enculé','encule','nazi','hitler',
+  ];
+}
+function saveBanlist(list) {
+  localStorage.setItem('md-admin-banlist', JSON.stringify(list));
+}
+function renderBanlist() {
+  const list = getBanlist();
+  const wrap = document.getElementById('banlist-wrap');
+  if (!list.length) { wrap.innerHTML = '<span style="color:var(--texte-doux);font-size:.85rem">Aucun mot banni</span>'; return; }
+  wrap.innerHTML = list.map((w, i) => `
+    <div class="banlist-item">
+      <span>🚫 ${escHtml(w)}</span>
+      <button class="btn btn-sm btn-danger" onclick="removeBan(${i})">Retirer</button>
+    </div>`).join('');
+}
+function addBan() {
+  const input = document.getElementById('ban-input');
+  const val = input.value.trim().toLowerCase();
+  if (!val) return;
+  const list = getBanlist();
+  if (list.includes(val)) { showToast('Déjà dans la banlist'); return; }
+  list.push(val);
+  saveBanlist(list);
+  input.value = '';
+  renderBanlist();
+  showToast('✅ Ajouté à la banlist');
+}
+function removeBan(i) {
+  const list = getBanlist();
+  list.splice(i, 1);
+  saveBanlist(list);
+  renderBanlist();
+  showToast('✅ Retiré de la banlist');
+}
+document.getElementById('ban-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addBan();
+});
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function escHtml(v) {
+  return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+}
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+</script>
+</body>
+</html>
