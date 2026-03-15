@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Téléphone Dessiné ♡ Mots Doux</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.ably.com/lib/ably.min-2.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rose:#f7c5d5;--rose-d:#e8809e;
+  --lavande:#d4c5f7;--lavande-d:#9b82e0;
+  --menthe:#c5f0e0;--menthe-d:#5bc9a0;
+  --peche:#fbd5b5;--peche-d:#f09460;
+  --jaune:#fde68a;--jaune-d:#d97706;
+  --creme:#fef8f0;--beige:#f5ede0;
+  --brun-d:#7a5c4a;--brun:#b08a72;
+  --blanc:#ffffff;--texte:#4a3728;--texte-doux:#8a6d5e;
+  --shadow:rgba(180,130,110,0.15);
+  --nav-h:56px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Quicksand',sans-serif;background:var(--creme);color:var(--texte);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:
+  radial-gradient(circle at 15% 15%,rgba(247,197,213,.3) 0%,transparent 50%),
+  radial-gradient(circle at 85% 85%,rgba(212,197,247,.22) 0%,transparent 50%),
+  radial-gradient(circle at 60% 10%,rgba(197,240,224,.2) 0%,transparent 40%);
+  pointer-events:none;z-index:0}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;height:var(--nav-h);background:rgba(254,248,240,.92);backdrop-filter:blur(14px);border-bottom:1.5px solid rgba(180,130,110,.1);padding:0 1rem;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;color:var(--texte);text-decoration:none;display:flex;align-items:center;gap:.35rem}
+.nav-logo span{color:var(--rose-d)}
+.nav-back{font-size:.8rem;font-weight:600;color:var(--texte-doux);text-decoration:none;padding:.3rem .7rem;border-radius:100px;border:1.5px solid rgba(180,130,110,.2);transition:background .15s}
+.nav-back:hover{background:var(--beige)}
+
+/* LAYOUT */
+.page{position:relative;z-index:10;max-width:680px;margin:0 auto;padding:1.5rem 1rem 4rem}
+
+/* SCREENS */
+.screen{display:none;animation:fadeUp .35s cubic-bezier(.34,1.56,.64,1)}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--blanc);border-radius:22px;padding:1.5rem;box-shadow:0 4px 24px var(--shadow);border:1.5px solid rgba(180,130,110,.1);margin-bottom:1rem}
+.card-icon{font-size:2.4rem;margin-bottom:.6rem;display:block;text-align:center}
+.card-title{font-family:'Nunito',sans-serif;font-size:1.4rem;font-weight:800;text-align:center;margin-bottom:.3rem}
+.card-sub{font-size:.85rem;color:var(--texte-doux);text-align:center;line-height:1.5;margin-bottom:1.2rem}
+
+/* INPUTS */
+input[type=text]{width:100%;height:48px;border-radius:13px;border:2px solid rgba(180,130,110,.25);background:var(--beige);font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;color:var(--texte);padding:0 1rem;outline:none;transition:border-color .15s;margin-bottom:.65rem}
+input[type=text]:focus{border-color:var(--rose-d)}
+input[type=text]::placeholder{font-family:'Quicksand',sans-serif;font-weight:500;color:var(--brun);opacity:.5}
+
+/* BUTTONS */
+.btn{background:var(--texte);color:var(--blanc);border:none;border-radius:100px;padding:.6rem 1.4rem;font-family:'Quicksand',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;display:inline-flex;align-items:center;gap:.35rem;text-decoration:none}
+.btn:hover{background:var(--brun-d);transform:scale(1.02)}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn-full{width:100%;justify-content:center}
+.btn-rose{background:var(--rose-d)}
+.btn-rose:hover{background:#d4607a}
+.btn-outline{background:transparent;color:var(--texte-doux);border:1.5px solid rgba(180,130,110,.3)}
+.btn-outline:hover{background:var(--beige);transform:none}
+.btn-sm{padding:.38rem .9rem;font-size:.8rem}
+
+/* LOBBY */
+.room-code{font-family:'Nunito',sans-serif;font-size:2.8rem;font-weight:900;text-align:center;letter-spacing:.18em;color:var(--rose-d);background:var(--rose);border-radius:16px;padding:.6rem 1rem;margin:1rem 0;cursor:pointer;transition:transform .15s;user-select:all}
+.room-code:hover{transform:scale(1.03)}
+.room-code-hint{text-align:center;font-size:.75rem;color:var(--texte-doux);margin-bottom:1rem}
+.players-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:1.2rem}
+.player-row{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;background:var(--beige);border-radius:12px;font-weight:600;font-size:.88rem}
+.player-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.player-host{font-size:.7rem;color:var(--rose-d);font-weight:700;margin-left:auto;background:var(--rose);padding:.15rem .5rem;border-radius:100px}
+.waiting-dots{display:inline-flex;gap:4px;margin-left:4px}
+.waiting-dots span{width:5px;height:5px;border-radius:50%;background:var(--texte-doux);animation:dot .9s ease-in-out infinite}
+.waiting-dots span:nth-child(2){animation-delay:.15s}
+.waiting-dots span:nth-child(3){animation-delay:.3s}
+@keyframes dot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* TIMER */
+.timer-wrap{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem}
+.timer-bar-bg{flex:1;height:8px;background:var(--beige);border-radius:100px;overflow:hidden;margin:0 .8rem}
+.timer-bar{height:100%;background:linear-gradient(90deg,var(--menthe-d),var(--lavande-d));border-radius:100px;transition:width 1s linear}
+.timer-text{font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;color:var(--texte);min-width:2.5rem;text-align:right}
+.phase-pill{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.22rem .7rem;border-radius:100px}
+.phase-draw{background:rgba(247,197,213,.4);color:var(--rose-d)}
+.phase-guess{background:rgba(212,197,247,.4);color:var(--lavande-d)}
+
+/* PROMPT */
+.prompt-box{background:var(--lavande);border-radius:14px;padding:.8rem 1.1rem;text-align:center;margin-bottom:1rem}
+.prompt-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--lavande-d);margin-bottom:.2rem}
+.prompt-word{font-family:'Nunito',sans-serif;font-size:1.5rem;font-weight:900;color:var(--texte)}
+
+/* CANVAS */
+.canvas-wrap{position:relative;margin-bottom:.8rem;border-radius:16px;overflow:hidden;box-shadow:0 3px 14px var(--shadow);border:2px solid rgba(180,130,110,.15)}
+canvas{display:block;width:100%;cursor:crosshair;touch-action:none;background:#fff}
+.canvas-preview{display:block;width:100%;border-radius:14px;border:2px solid rgba(180,130,110,.15)}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem}
+.color-btn{width:30px;height:30px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0}
+.color-btn.active,.color-btn:hover{border-color:var(--texte);transform:scale(1.15)}
+.size-btn{width:30px;height:30px;border-radius:50%;background:var(--beige);border:1.5px solid rgba(180,130,110,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.size-btn.active,.size-btn:hover{background:var(--beige);border-color:var(--texte)}
+.size-dot{border-radius:50%;background:var(--texte);pointer-events:none}
+.tool-sep{width:1px;height:28px;background:rgba(180,130,110,.2);flex-shrink:0}
+.eraser-btn{padding:.3rem .7rem;border-radius:100px;background:var(--beige);border:1.5px solid rgba(180,130,110,.2);font-size:.75rem;font-weight:700;cursor:pointer;color:var(--texte-doux);transition:background .15s}
+.eraser-btn.active{background:var(--texte);color:var(--blanc)}
+.clear-btn{padding:.3rem .7rem;border-radius:100px;background:transparent;border:1.5px solid rgba(180,130,110,.2);font-size:.75rem;font-weight:700;cursor:pointer;color:var(--texte-doux);transition:background .15s}
+.clear-btn:hover{background:var(--beige)}
+
+/* GUESS INPUT */
+.guess-section{display:flex;gap:.55rem;margin-top:.5rem}
+.guess-section input{flex:1;margin-bottom:0}
+
+/* RESULTS */
+.result-chain{display:flex;flex-direction:column;gap:1rem}
+.chain-step{border-radius:18px;overflow:hidden;border:1.5px solid rgba(180,130,110,.12);background:var(--blanc);box-shadow:0 3px 14px var(--shadow);animation:fadeUp .4s cubic-bezier(.34,1.56,.64,1) backwards}
+.chain-step-header{padding:.7rem 1rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:700}
+.chain-step-header.draw{background:rgba(247,197,213,.25)}
+.chain-step-header.guess{background:rgba(212,197,247,.25)}
+.chain-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.chain-type{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texte-doux);margin-left:auto}
+.chain-text{font-family:'Nunito',sans-serif;font-size:1.15rem;font-weight:800;padding:.8rem 1rem}
+.chain-img{width:100%;display:block}
+.original-label{text-align:center;padding:.5rem;font-size:.78rem;font-weight:700;color:var(--texte-doux);border-top:1px dashed rgba(180,130,110,.15)}
+.original-word{font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;color:var(--rose-d)}
+
+/* WAITING SCREEN */
+.waiting-card{text-align:center;padding:2.5rem 1.5rem}
+.waiting-icon{font-size:3rem;margin-bottom:.8rem;animation:bobble 2s ease-in-out infinite}
+@keyframes bobble{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;font-weight:600;font-size:.88rem;z-index:300;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* STATUS BAR */
+.status-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.4rem}
+.status-pill{background:var(--blanc);border-radius:100px;padding:.28rem .8rem;font-size:.74rem;font-weight:600;color:var(--texte-doux);box-shadow:0 2px 8px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
+
+@media(max-width:600px){
+  .toolbar{gap:.35rem}
+  .color-btn{width:26px;height:26px}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">🌸 Mots <span>Doux</span></a>
+  <a href="index.html" class="nav-back">← Accueil</a>
+</nav>
+
+<!-- ══ SCREEN: HOME ══ -->
+<div class="page">
+<div id="screen-home" class="screen active">
+  <div class="card" style="text-align:center;padding:2rem 1.5rem">
+    <span class="card-icon">🎨</span>
+    <div class="card-title">Téléphone Dessiné</div>
+    <div class="card-sub">Dessine un mot, passe à ton voisin qui devine,<br>puis il dessine ce qu'il a deviné… et ainsi de suite !</div>
+  </div>
+  <div class="card">
+    <input type="text" id="input-name" placeholder="Ton pseudo…" maxlength="16" />
+    <button class="btn btn-full btn-rose" onclick="createRoom()">✨ Créer une salle</button>
+    <div style="display:flex;align-items:center;gap:.6rem;margin:.7rem 0">
+      <div style="flex:1;height:1px;background:rgba(180,130,110,.15)"></div>
+      <span style="font-size:.75rem;color:var(--texte-doux);font-weight:600">ou</span>
+      <div style="flex:1;height:1px;background:rgba(180,130,110,.15)"></div>
+    </div>
+    <input type="text" id="input-room" placeholder="Code de la salle…" maxlength="6" style="text-transform:uppercase;letter-spacing:.12em;font-size:1.1rem" />
+    <button class="btn btn-full btn-outline" onclick="joinRoom()">🚪 Rejoindre</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: LOBBY ══ -->
+<div id="screen-lobby" class="screen">
+  <div class="card">
+    <div class="card-title">Salle d'attente 🌸</div>
+    <div class="room-code" id="display-code" onclick="copyCode()" title="Cliquer pour copier"></div>
+    <div class="room-code-hint">Partage ce code à tes amis · Clique pour copier</div>
+    <div class="players-list" id="players-list"></div>
+    <div id="lobby-waiting" style="text-align:center;font-size:.83rem;color:var(--texte-doux);margin-bottom:.8rem">
+      En attente de joueurs<span class="waiting-dots"><span></span><span></span><span></span></span>
+    </div>
+    <button class="btn btn-full btn-rose" id="btn-start" onclick="startGame()" style="display:none">🎮 Lancer la partie !</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: DRAW ══ -->
+<div id="screen-draw" class="screen">
+  <div class="status-bar">
+    <span class="status-pill phase-pill phase-draw">✏️ Dessin</span>
+    <span class="status-pill" id="draw-round-pill"></span>
+  </div>
+  <div class="prompt-box">
+    <div class="prompt-label">Dessine ce mot</div>
+    <div class="prompt-word" id="draw-prompt"></div>
+  </div>
+  <div class="timer-wrap">
+    <span style="font-size:.78rem;font-weight:700;color:var(--texte-doux)">⏱</span>
+    <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+    <div class="timer-text" id="timer-text">90</div>
+  </div>
+  <div class="canvas-wrap">
+    <canvas id="draw-canvas" height="360"></canvas>
+  </div>
+  <div class="toolbar" id="toolbar">
+    <button class="eraser-btn" id="btn-eraser" onclick="toggleEraser()">⬜ Gomme</button>
+    <button class="clear-btn" onclick="clearCanvas()">🗑 Effacer</button>
+    <div class="tool-sep"></div>
+    <button class="size-btn active" onclick="setSize(4,this)"><span class="size-dot" style="width:6px;height:6px"></span></button>
+    <button class="size-btn" onclick="setSize(10,this)"><span class="size-dot" style="width:11px;height:11px"></span></button>
+    <button class="size-btn" onclick="setSize(20,this)"><span class="size-dot" style="width:18px;height:18px"></span></button>
+    <div class="tool-sep"></div>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.8rem" id="color-palette"></div>
+  <button class="btn btn-full" onclick="submitDrawing()">✅ Envoyer mon dessin</button>
+</div>
+
+<!-- ══ SCREEN: GUESS ══ -->
+<div id="screen-guess" class="screen">
+  <div class="status-bar">
+    <span class="status-pill phase-pill phase-guess">💬 Devinette</span>
+    <span class="status-pill" id="guess-round-pill"></span>
+  </div>
+  <div class="card-sub" style="margin-bottom:.7rem;font-size:.82rem">Qu'est-ce que cette personne a dessiné ?</div>
+  <div class="timer-wrap">
+    <span style="font-size:.78rem;font-weight:700;color:var(--texte-doux)">⏱</span>
+    <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar-g"></div></div>
+    <div class="timer-text" id="timer-text-g">60</div>
+  </div>
+  <div class="canvas-wrap">
+    <img id="guess-img" class="canvas-preview" src="" alt="dessin à deviner" />
+  </div>
+  <div class="guess-section">
+    <input type="text" id="guess-input" placeholder="Ta réponse…" maxlength="40" />
+    <button class="btn btn-rose" onclick="submitGuess()">→</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN: WAITING ══ -->
+<div id="screen-waiting" class="screen">
+  <div class="card waiting-card">
+    <div class="waiting-icon">⏳</div>
+    <div class="card-title" id="waiting-title">En attente des autres…</div>
+    <div class="card-sub" id="waiting-sub">Les autres joueurs finissent leur tour.</div>
+  </div>
+</div>
+
+<!-- ══ SCREEN: RESULTS ══ -->
+<div id="screen-results" class="screen">
+  <div class="card" style="text-align:center;margin-bottom:1rem">
+    <span class="card-icon">🎉</span>
+    <div class="card-title">La chaîne complète !</div>
+    <div class="card-sub">Voici comment votre histoire s'est transformée…</div>
+  </div>
+  <div class="result-chain" id="result-chain"></div>
+  <div style="margin-top:1.2rem;display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+    <button class="btn btn-rose" onclick="playAgain()">🔄 Rejouer</button>
+    <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
+  </div>
+</div>
+</div><!-- /page -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+// Auth via token Vercel (ne pas mettre la clé Ably dans le HTML !)
+// Si tu veux tester en local rapidement, remplace authUrl par: key: 'TA_CLE_ABLY'
+const ABLY_AUTH = { authUrl: '/api/token', authParams: { clientId: myId } };
+const DRAW_TIME = 90;  // secondes pour dessiner
+const GUESS_TIME = 60; // secondes pour deviner
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let ably, channel;
+let myId   = Math.random().toString(36).slice(2,8);
+let myName = '';
+let roomCode = '';
+let isHost   = false;
+let players  = {}; // {id: {name, avatar}}
+let gameState = null;
+/*
+gameState = {
+  phase: 'lobby'|'draw'|'guess'|'waiting'|'results',
+  round: 0,           // tour actuel (0-based)
+  totalRounds: N,     // nb joueurs
+  chains: {           // une chaîne par joueur (indexée par l'id du joueur qui a eu le mot initial)
+    [starterId]: [ {type:'word',text,author}, {type:'draw',dataUrl,author}, {type:'guess',text,author}, … ]
+  },
+  assignments: {[playerId]: starterId}, // à ce tour, ce joueur travaille sur la chaîne de starterId
+  submissions: {[playerId]: done},
+  prompts: {[playerId]: string}, // mot initial de chaque joueur
+}
+*/
+let timerInterval = null;
+let timerLeft = 0;
+
+// ─── AVATARS ────────────────────────────────────────────────────────────────
+const AVATARS = ['🐱','🐶','🐸','🦊','🐨','🐼','🐻','🦁','🐯','🐮','🐷','🐙'];
+function getAvatar(id){ let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))&0xffff;return AVATARS[h%AVATARS.length]; }
+const COLORS_BG = ['#fde68a','#c5f0e0','#d4c5f7','#f7c5d5','#fbd5b5','#c5e8f7'];
+function getBg(id){ let h=0;for(const c of id)h=(h*17+c.charCodeAt(0))&0xffff;return COLORS_BG[h%COLORS_BG.length]; }
+
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+function showToast(msg,duration=2400){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),duration);
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function genCode(){ return Math.random().toString(36).slice(2,8).toUpperCase(); }
+
+// ─── ABLY SETUP ──────────────────────────────────────────────────────────────
+function connectAbly(code){
+  roomCode = code;
+  ably = new Ably.Realtime({ ...ABLY_AUTH, clientId: myId });
+  channel = ably.channels.get('mots-doux-'+code);
+  channel.subscribe(onMessage);
+  channel.presence.enter({ name: myName, avatar: getAvatar(myId) });
+  channel.presence.subscribe(onPresence);
+  // Get current presence
+  channel.presence.get((err,members)=>{
+    if(!members) return;
+    members.forEach(m=>{
+      players[m.clientId]={ name:m.data.name, avatar:m.data.avatar };
+    });
+    renderPlayers();
+  });
+}
+
+function onPresence(msg){
+  const id=msg.clientId, data=msg.data||{};
+  if(msg.action==='enter'||msg.action==='update'){
+    players[id]={ name:data.name||'?', avatar:data.avatar||'🐱' };
+  } else if(msg.action==='leave'){
+    delete players[id];
+  }
+  renderPlayers();
+}
+
+function onMessage(msg){
+  const {type, payload} = msg.data;
+  switch(type){
+    case 'game_start':   handleGameStart(payload); break;
+    case 'next_turn':    handleNextTurn(payload); break;
+    case 'results':      handleResults(payload); break;
+    case 'submission':   handleSubmission(payload); break;
+  }
+}
+
+// ─── ROOM ────────────────────────────────────────────────────────────────────
+function createRoom(){
+  myName = document.getElementById('input-name').value.trim();
+  if(!myName){ showToast('Entre ton pseudo !'); return; }
+  isHost = true;
+  const code = genCode();
+  document.getElementById('display-code').textContent = code;
+  showScreen('lobby');
+  connectAbly(code);
+}
+function joinRoom(){
+  myName = document.getElementById('input-name').value.trim();
+  const code = document.getElementById('input-room').value.trim().toUpperCase();
+  if(!myName){ showToast('Entre ton pseudo !'); return; }
+  if(code.length<4){ showToast('Entre un code valide !'); return; }
+  document.getElementById('display-code').textContent = code;
+  showScreen('lobby');
+  connectAbly(code);
+}
+function copyCode(){
+  navigator.clipboard.writeText(roomCode).then(()=>showToast('Code copié ! 📋'));
+}
+function renderPlayers(){
+  const list = document.getElementById('players-list');
+  const ids = Object.keys(players);
+  list.innerHTML = ids.map(id=>`
+    <div class="player-row">
+      <div class="player-avatar" style="background:${getBg(id)}">${players[id].avatar}</div>
+      <span>${escHtml(players[id].name)}</span>
+      ${id===myId?'<span class="player-host">Moi</span>':''}
+    </div>`).join('');
+  const canStart = isHost && ids.length >= 2;
+  document.getElementById('btn-start').style.display = canStart ? 'flex' : 'none';
+  document.getElementById('lobby-waiting').style.display = canStart ? 'none' : 'block';
+}
+
+// ─── GAME START ──────────────────────────────────────────────────────────────
+function startGame(){
+  const ids = Object.keys(players);
+  if(ids.length < 2){ showToast('Il faut au moins 2 joueurs !'); return; }
+  // Host generates initial prompts — each player gets a word to draw
+  // For mode téléphone: chains are indexed by starter player
+  // Round 0: each player draws their own word
+  // Round 1: each player guesses the drawing from the next player's chain
+  // Round 2: each player draws based on the previous guess
+  // … until everyone has contributed to every chain
+  const wordBank = ['Maison','Soleil','Licorne','Pizza','Astronaute','Dragon','Robot','Sirène','Château','Baleine','Arc-en-ciel','Volcan','Fantôme','Pirate','Dinosaure','Chocolat','Vélo','Champignon','Étoile','Papillon'];
+  const prompts = {};
+  ids.forEach(id=>{ prompts[id]=wordBank[Math.floor(Math.random()*wordBank.length)]; });
+  const state = {
+    phase: 'draw',
+    round: 0,
+    totalRounds: ids.length,
+    chains: {},
+    assignments: {},
+    submissions: {},
+    prompts,
+    playerOrder: ids,
+  };
+  // Round 0: player i works on chain of player i (draws their own word)
+  ids.forEach(id=>{ state.assignments[id]=id; state.chains[id]=[]; });
+  channel.publish({ type:'game_start', payload:state });
+}
+
+function handleGameStart(state){
+  gameState = state;
+  startDrawPhase();
+}
+
+// ─── DRAW PHASE ──────────────────────────────────────────────────────────────
+function startDrawPhase(){
+  showScreen('draw');
+  const chainId = gameState.assignments[myId];
+  const chain   = gameState.chains[chainId];
+  // What to draw: either the initial word (round 0) or last guess
+  const prompt  = chain.length===0
+    ? gameState.prompts[chainId]
+    : chain[chain.length-1].text;
+  document.getElementById('draw-prompt').textContent = prompt;
+  document.getElementById('draw-round-pill').textContent = `Tour ${gameState.round+1}/${gameState.totalRounds}`;
+  clearCanvas();
+  startTimer(DRAW_TIME, 'timer-bar', 'timer-text', ()=>submitDrawing());
+}
+
+// ─── GUESS PHASE ─────────────────────────────────────────────────────────────
+function startGuessPhase(){
+  showScreen('guess');
+  const chainId = gameState.assignments[myId];
+  const chain   = gameState.chains[chainId];
+  const lastDraw = chain[chain.length-1]; // type:'draw'
+  document.getElementById('guess-img').src = lastDraw.dataUrl;
+  document.getElementById('guess-input').value = '';
+  document.getElementById('guess-round-pill').textContent = `Tour ${gameState.round+1}/${gameState.totalRounds}`;
+  startTimer(GUESS_TIME, 'timer-bar-g', 'timer-text-g', ()=>submitGuess());
+  setTimeout(()=>document.getElementById('guess-input').focus(), 300);
+}
+
+// ─── TIMER ───────────────────────────────────────────────────────────────────
+function startTimer(seconds, barId, textId, onExpire){
+  clearInterval(timerInterval);
+  timerLeft = seconds;
+  const bar  = document.getElementById(barId);
+  const text = document.getElementById(textId);
+  function tick(){
+    text.textContent = timerLeft;
+    bar.style.width  = (timerLeft/seconds*100)+'%';
+    bar.style.background = timerLeft<=10
+      ? 'linear-gradient(90deg,#f87171,#ef4444)'
+      : 'linear-gradient(90deg,var(--menthe-d),var(--lavande-d))';
+    if(timerLeft<=0){ clearInterval(timerInterval); onExpire(); return; }
+    timerLeft--;
+  }
+  tick();
+  timerInterval = setInterval(tick, 1000);
+}
+
+// ─── CANVAS ──────────────────────────────────────────────────────────────────
+let painting=false, erasing=false, brushSize=4, brushColor='#4a3728';
+const PALETTE=['#4a3728','#e8809e','#9b82e0','#5bc9a0','#f09460','#d97706','#3b82f6','#ef4444','#ffffff'];
+
+function initCanvas(){
+  const canvas = document.getElementById('draw-canvas');
+  const rect   = canvas.getBoundingClientRect();
+  canvas.width = canvas.offsetWidth;
+  // Build palette
+  const pal = document.getElementById('color-palette');
+  pal.innerHTML = PALETTE.map(c=>`
+    <button class="color-btn${c===brushColor?' active':''}" style="background:${c}"
+      onclick="setColor('${c}',this)"></button>`).join('');
+
+  function getPos(e){
+    const r=canvas.getBoundingClientRect();
+    const src=e.touches?e.touches[0]:e;
+    return[(src.clientX-r.left)*(canvas.width/r.width),(src.clientY-r.top)*(canvas.height/r.height)];
+  }
+  const ctx=canvas.getContext('2d');
+  canvas.addEventListener('mousedown', e=>{painting=true;ctx.beginPath();const[x,y]=getPos(e);ctx.moveTo(x,y);draw(e)});
+  canvas.addEventListener('mousemove', e=>{if(painting)draw(e)});
+  canvas.addEventListener('mouseup',   ()=>{painting=false;ctx.beginPath()});
+  canvas.addEventListener('mouseleave',()=>{painting=false;ctx.beginPath()});
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();painting=true;ctx.beginPath();const[x,y]=getPos(e);ctx.moveTo(x,y);draw(e)},{passive:false});
+  canvas.addEventListener('touchmove', e=>{e.preventDefault();if(painting)draw(e)},{passive:false});
+  canvas.addEventListener('touchend',  ()=>{painting=false;ctx.beginPath()});
+
+  function draw(e){
+    const[x,y]=getPos(e);
+    ctx.lineWidth   = brushSize;
+    ctx.lineCap     = 'round';
+    ctx.strokeStyle = erasing?'#ffffff':brushColor;
+    ctx.globalCompositeOperation = erasing?'destination-out':'source-over';
+    ctx.lineTo(x,y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+  }
+}
+function clearCanvas(){
+  const canvas=document.getElementById('draw-canvas');
+  canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+}
+function setColor(c,el){
+  brushColor=c; erasing=false;
+  document.querySelectorAll('.color-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('btn-eraser').classList.remove('active');
+}
+function setSize(s,el){
+  brushSize=s;
+  document.querySelectorAll('.size-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function toggleEraser(){
+  erasing=!erasing;
+  document.getElementById('btn-eraser').classList.toggle('active',erasing);
+}
+
+// ─── SUBMIT ──────────────────────────────────────────────────────────────────
+function submitDrawing(){
+  clearInterval(timerInterval);
+  const canvas  = document.getElementById('draw-canvas');
+  const dataUrl = canvas.toDataURL('image/jpeg',0.5); // compress for Ably
+  const chainId = gameState.assignments[myId];
+  const author  = myId;
+  channel.publish({
+    type:'submission',
+    payload:{ playerId:myId, chainId, type:'draw', dataUrl, author }
+  });
+  showWaiting('Dessin envoyé !', 'En attente des autres joueurs…');
+}
+
+function submitGuess(){
+  clearInterval(timerInterval);
+  const text    = document.getElementById('guess-input').value.trim() || '?';
+  const chainId = gameState.assignments[myId];
+  channel.publish({
+    type:'submission',
+    payload:{ playerId:myId, chainId, type:'guess', text, author:myId }
+  });
+  showWaiting('Réponse envoyée !', 'En attente des autres joueurs…');
+}
+
+function showWaiting(title,sub){
+  document.getElementById('waiting-title').textContent = title;
+  document.getElementById('waiting-sub').textContent   = sub;
+  showScreen('waiting');
+}
+
+// ─── HOST: COLLECT SUBMISSIONS ───────────────────────────────────────────────
+let pendingSubmissions = {};
+
+function handleSubmission(payload){
+  if(!isHost) return; // only host collates
+  const { playerId, chainId, type, dataUrl, text, author } = payload;
+  // Add to chain
+  const entry = type==='draw' ? {type,dataUrl,author} : {type,text,author};
+  gameState.chains[chainId].push(entry);
+  pendingSubmissions[playerId] = true;
+  const ids = gameState.playerOrder;
+  if(Object.keys(pendingSubmissions).length >= ids.length){
+    // All submitted — advance
+    pendingSubmissions = {};
+    advanceRound();
+  }
+}
+
+function advanceRound(){
+  gameState.round++;
+  if(gameState.round >= gameState.totalRounds){
+    // Done! Broadcast results
+    channel.publish({ type:'results', payload:{ chains:gameState.chains, prompts:gameState.prompts, players } });
+    return;
+  }
+  // Rotate assignments: player i now works on chain of player (i+1) mod n
+  const ids = gameState.playerOrder;
+  const newAssignments = {};
+  ids.forEach((id,i)=>{
+    const prevChainId = gameState.assignments[id];
+    const prevIdx     = ids.indexOf(prevChainId);
+    const nextIdx     = (prevIdx+1)%ids.length;
+    newAssignments[id] = ids[nextIdx];
+  });
+  gameState.assignments = newAssignments;
+  gameState.phase = gameState.round%2===0 ? 'draw' : 'guess';
+  channel.publish({ type:'next_turn', payload:gameState });
+}
+
+function handleNextTurn(state){
+  gameState = state;
+  if(state.phase==='draw') startDrawPhase();
+  else startGuessPhase();
+}
+
+// ─── RESULTS ────────────────────────────────────────────────────────────────
+function handleResults({chains, prompts, players: pl}){
+  clearInterval(timerInterval);
+  showScreen('results');
+  const container = document.getElementById('result-chain');
+  container.innerHTML = '';
+  // Show one chain (the first starter's chain, which went through everyone)
+  // Pick the chain that is most complete
+  const ids = Object.keys(chains);
+  // Display all chains, one per original word
+  ids.forEach((starterId,ci)=>{
+    const chain = chains[starterId];
+    const wrapper = document.createElement('div');
+    wrapper.style.marginBottom='1.5rem';
+    // Original word header
+    const hdr = document.createElement('div');
+    hdr.style.cssText='text-align:center;margin-bottom:.6rem;font-size:.78rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.1em';
+    hdr.textContent = `Chaîne de ${(pl[starterId]||{name:'?'}).name}`;
+    wrapper.appendChild(hdr);
+    // First word
+    const orig = document.createElement('div');
+    orig.className='chain-step';
+    orig.style.animationDelay=(ci*.1)+'s';
+    orig.innerHTML=`
+      <div class="chain-step-header guess">
+        <div class="chain-avatar" style="background:${getBg(starterId)}">${(pl[starterId]||{avatar:'🐱'}).avatar}</div>
+        <span>${escHtml((pl[starterId]||{name:'?'}).name)} a choisi…</span>
+        <span class="chain-type">Mot</span>
+      </div>
+      <div class="chain-text">${escHtml(prompts[starterId]||'?')}</div>`;
+    wrapper.appendChild(orig);
+    // Chain steps
+    chain.forEach((step,si)=>{
+      const step_el = document.createElement('div');
+      step_el.className='chain-step';
+      step_el.style.animationDelay=((ci*.1)+(si+1)*.12)+'s';
+      const author = pl[step.author]||{name:'?',avatar:'🐱'};
+      if(step.type==='draw'){
+        step_el.innerHTML=`
+          <div class="chain-step-header draw">
+            <div class="chain-avatar" style="background:${getBg(step.author)}">${author.avatar}</div>
+            <span>${escHtml(author.name)} a dessiné…</span>
+            <span class="chain-type">Dessin</span>
+          </div>
+          <img class="chain-img" src="${step.dataUrl}" alt="dessin" />`;
+      } else {
+        step_el.innerHTML=`
+          <div class="chain-step-header guess">
+            <div class="chain-avatar" style="background:${getBg(step.author)}">${author.avatar}</div>
+            <span>${escHtml(author.name)} a deviné…</span>
+            <span class="chain-type">Devinette</span>
+          </div>
+          <div class="chain-text">${escHtml(step.text)}</div>`;
+      }
+      wrapper.appendChild(step_el);
+    });
+    container.appendChild(wrapper);
+  });
+}
+
+function playAgain(){
+  // Reset, go back to lobby
+  gameState = null;
+  pendingSubmissions = {};
+  showScreen('lobby');
+  renderPlayers();
+}
+
+// ─── HELPERS ────────────────────────────────────────────────────────────────
+function escHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  initCanvas();
+  document.getElementById('input-name').addEventListener('keydown',e=>{if(e.key==='Enter')createRoom()});
+  document.getElementById('input-room').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
+  document.getElementById('guess-input').addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});
+});
+window.addEventListener('resize',()=>{
+  const c=document.getElementById('draw-canvas');
+  const img=c.toDataURL();
+  c.width=c.offsetWidth;
+  const ctx=c.getContext('2d');
+  const i=new Image();i.onload=()=>ctx.drawImage(i,0,0);i.src=img;
+});
+</script>
+</body>
+</html>
