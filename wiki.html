@@ -261,6 +261,26 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 <div class="toast" id="toast"></div>
 
+<!-- Lang picker modal -->
+<div class="lang-modal-overlay" id="lang-modal">
+  <div class="lang-modal">
+    <div class="lang-modal-icon">🌍</div>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 <script>
 // I18N
 const T={
@@ -272,6 +292,8 @@ const T={
     propose_label:"Propose un mot",validate:"Valider ✓",abandon:"😮‍💨 Abandonner et voir la réponse",
     btn_sutom:"🔤 Jouer à Sutom",back_home:"🏠 Accueil",
     already:"Déjà proposé !",
+    not_word:"Mot inconnu du dictionnaire 📖",
+    checking:"Vérification…",
     modal_title:"Ton score !",modal_sub:"Entre ton pseudo pour le leaderboard 🏆",
     modal_ph:"Ton pseudo…",modal_submit:"Enregistrer 🎉",modal_skip:"Non merci",
     lose:"L'article était…",
@@ -285,6 +307,8 @@ const T={
     propose_label:"Guess a word",validate:"Submit ✓",abandon:"😮‍💨 Give up and see the answer",
     btn_sutom:"🔤 Play Sutom",back_home:"🏠 Home",
     already:"Already tried!",
+    not_word:"Unknown word 📖",
+    checking:"Checking…",
     modal_title:"Your score!",modal_sub:"Enter your name for the leaderboard 🏆",
     modal_ph:"Your name…",modal_submit:"Save 🎉",modal_skip:"No thanks",
     lose:"The article was…",
@@ -303,7 +327,7 @@ function applyLang(){
   document.getElementById('pill-date').textContent='📅 '+new Date().toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long'});
   updateProgressText();
 }
-function setLang(l){lang=l;localStorage.setItem('md-lang',l);applyLang();toggleMenu(true)}
+function setLang(l){if(l===lang)return;localStorage.setItem('md-lang',l);location.reload();}
 
 // ARTICLES
 const ARTICLES_FR=[
@@ -425,7 +449,34 @@ function updateCounters(){
   updateProgressText();
 }
 
-function submitWord(){
+// DICTIONARY CHECK
+// Wordlist FR (mots valides courants, sans accents)
+const VALID_FR=new Set("MAISON,JARDIN,SOLEIL,MOUTON,CANARD,PIERRE,ARBRES,BALCON,BEAUTE,MANGER,DORMIR,FACILE,RAPIDE,HERBES,CHEMIN,NUAGES,FLEURS,CHARME,BRAISE,SAVOIR,VALISE,MIROIR,DESERT,VOYAGE,PAROLE,NATURE,PLUMES,CANAPE,BUREAU,MARCHE,BATEAU,AVENIR,BOUGIE,CHAUDE,FROIDE,CHEVRE,LIERRE,MENTHE,ORANGE,CERISE,BANANE,MANGUE,CASQUE,FLECHE,NUANCE,TRUITE,SAUMON,JARRES,BOUTON,CRAYON,CAHIER,RIDEAU,CHAISE,DOUCHE,AMUSER,CAMION,CARTON,CHATON,COQUET,DANSER,DEBOUT,DEVANT,DOMINO,FANION,FIABLE,GLOIRE,GRENAT,HILARE,JURONS,LACUNE,LEVIER,MAILLE,MANOIR,MIRAGE,MODELE,MOUSSE,MUSEAU,NAITRE,NIVEAU,NODULE,NOUGAT,OEUVRE,OISEAU,ABIMER,ABSENT,ABSOLU,ABUSER,ACCUSE,ACHEVE,ACTIVE,ADAPTE,ADMIRE,ADOPTE,ADULTE,AFFAME,AGENCE,AGITER,AIGLON,AIMANT,ALERTE,ALIGNE,ALLIER,ALPAGE,AMANDE,AMARRE,AMENDE,AMIDON,AMITIE,AMORCE,ANCIEN,ANGINE,ANNEAU,APERCU,APLOMB,APPRIS,ARDEUR,ARGENT,ARMURE,ARRETE,ARRIVE,ARTERE,ASPECT,ASTUCE,ATTIRE,AUDACE,AUGURE,AURORE,AUTEUR,AUTRES,AVALEE,AVANCE,AVOINE,BAILEE,BAISER,BANDER,BANNIE,BARQUE,BARRER,BASSIN,BEDEAU,BELOTE,BERGER,BLAGUE,BLESSE,BLOTTI,BOISEE,BONNET,BOSSUE,BOTTER,BOUCHE,BOUDER,BOUEUX,BOUGON,BOULET,BOURRE,BOUTER,BRAVER,BRETON,BRIQUE,BRISER,BRODER,BRULER,BRUNIR,CADEAU,CAISSE,CALMER,CAMPER,CANINE,CARAFE,CARNET,CAUSSE,CENDRE,CERTES,CESSER,CHALET,CHAQUE,CHARGE,CHARTE,CHAUME,CLAMER,CLARTE,CLOCHE,COGNER,COLERE,COLLET,COLLER,COMBAT,COMBLE,COMMUN,COPIER,CORDON,CORNER,COUARD,COUDRE,COULEE,COUPER,COURIR,CRACHE,CREVER,CROIRE,CROUPE,CUISSE,DAMNER,DAUBER,DEBILE,DECALE,DECENT,DECIDE,DEDAIN,DEFAUT,DEGOUT,DEHORS,DELIRE,DEMENT,DENOTE,DEPLIE,DEPUIS,DERIVE,DESOLE,DIABLE,DINDON,DOLMEN,DONJON,DOSEUR,DOUBLE,DOUTER,DROITE,EFFACE,ELEVER,EMERGE,EMIRAT,EMPIRE,ENFANT,ENLEVE,ENNEMI,ENTIER,ENTRER,ENVERS,EPOQUE,ERRANT,ESPOIR,ETALER,ETROIT,EVADER,EVOLUE,EXAMEN,EXCITE,EXEMPT,EXPOSE,FACHER,FAIBLE,FAMEUX,FAMINE,FARCES,FATALE,FAVEUR,FENDRE,FERMER,FEROCE,FEUTRE,FIASCO,FIGURE,FLAMME,FLANER,FLAQUE,FLECHI,FLUIDE,FORCER,FORGER,FOUDRE,FOURBE,FOURMI,FRACAS,FRAISE,FRAYER,FRISEE,FRONDE,FUREUR,FUTURE,GAGNER,GALERE,GARDER,GATEAU,GAUCHE,GENDRE,GERBER,GLANER,GLISSE,GONFLE,GORGER,GOUTER,GRUGER,GUIDER,HASARD,HISSER,HUMOUR,IMITER,IMPOSE,INEPTE,IRONIE,JARRET,JETONS,JOVIAL,JOUEUR,LANCER,LANGUE,LARDER,LARGUE,LASSER,LATENT,LAVOIR,LEGERE,LESTER,LEURRE,LIVRER,LOUCHE,MAIGRE,MALICE,MANQUE,MARTYR,MASTIC,MAUDIT,MERITE,METTRE,MIETTE,MODERE,MOMENT,MONTRE,MORDRE,MOTEUR,MOUCHE,MOURIR,MUNIES,MUSARD,NATTES,NAVIRE,NEUTRE,NICHER,NOMMER,NORMES,NOURRI,OBTENU,OFFRIR,OPAQUE,OPPOSE,ORGANE,OUBLIE,PALIER,PARDON,PATRIE,PATRON,PENSER,PERCER,PERDRE,PERMET,PETITE,PHRASE,PIOCHE,PIQUER,PLACER,PLAIRE,PLANER,PLAQUE,PLONGE,PLUTOT,POCHER,POLLEN,PORTER,POTION,POURRI,PREUVE,PRIMER,PRISON,PROPOS,RENARD,RENDRE,REFUGE,RELIER,RETARD,RETENU,REVELE,RISQUE,RONDEUR,RONGER,ROULER,RUSTRE,SABLER,SALUER,SAUTER,SAVEUR,SEMBLER,SERMON,SERRER,SIGNAL,SIROTE,SOLDAT,SOMBRE,SONGER,SORTIR,SOURIRE,SUISSE,TACHER,TAILLE,TAMPON,TARDER,TEINTE,TENDRE,TENDUE,TIMIDE,TOLERE,TOMBER,TONNER,TOUCHE,TRAITS,TRESOR,TRESSE,TRISTE,TROUBLE,TROUVER,ULTIME,VALEUR,VANTER,VENTRE,VERSER,VILAIN,VIVANT,VOLEUR,VRILLE,ZAPPER".split(","));
+
+const dictCache={};
+async function checkWord(word,l){
+  const w=word.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const key=l+':'+w;
+  if(key in dictCache) return dictCache[key];
+  try{
+    let ok=false;
+    if(l==='fr'){
+      if(VALID_FR.has(w)){ ok=true; }
+      else {
+        const r=await fetch(`https://fr.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word.toLowerCase())}&format=json&origin=*`);
+        const d=await r.json();
+        ok=!Object.keys(d.query.pages).includes('-1');
+      }
+    } else {
+      const r=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
+      ok=r.ok;
+    }
+    dictCache[key]=ok;
+    return ok;
+  }catch(e){ return true; }
+}
+
+async function submitWord(){
   if(gameOver)return;
   const input=document.getElementById('word-input'),raw=input.value.trim();
   if(!raw)return;
@@ -434,6 +485,19 @@ function submitWord(){
   if(guessedNorms.has(normInput)){
     showToast(t('already'));input.classList.add('shake');
     setTimeout(()=>input.classList.remove('shake'),380);input.value='';return;
+  }
+  // Only check single words (not the full title guess)
+  if(!normInput.includes(' ')){
+    showToast(t('checking'));
+    document.getElementById('submit-btn').disabled=true;
+    const known=await checkWord(raw,lang);
+    document.getElementById('submit-btn').disabled=false;
+    if(!known){
+      showToast(t('not_word'));
+      input.classList.add('shake');
+      setTimeout(()=>input.classList.remove('shake'),380);
+      return;
+    }
   }
   guessedNorms.add(normInput);totalGuesses++;
   let occ=0;tokens.forEach(tok=>{if(/[a-zA-ZÀ-ÿ]/.test(tok)&&norm(tok)===normInput)occ++});
@@ -496,6 +560,17 @@ async function submitScore(){
   const name=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
   localStorage.setItem('md-name',name);
   document.getElementById('score-modal').classList.remove('open');
+  // Fallback local storage leaderboard
+  const today=new Date().toISOString().slice(0,10);
+  const lbKey=`lb:${today}`;
+  let scores=[];
+  try{const r=localStorage.getItem(lbKey);if(r)scores=JSON.parse(r)}catch(e){}
+  const normName=s=>s.toLowerCase().trim();
+  const idx=scores.findIndex(s=>normName(s.name)===normName(name)&&s.game==='Wiki');
+  const entry={name,score:pendingScore,game:'Wiki',ts:Date.now()};
+  if(idx>=0){if(pendingScore>scores[idx].score)scores[idx]=entry;}else scores.push(entry);
+  localStorage.setItem(lbKey,JSON.stringify(scores));
+  // Try remote API (Vercel + Upstash)
   try{
     const res=await fetch('/api/leaderboard',{
       method:'POST',
@@ -504,8 +579,8 @@ async function submitScore(){
     });
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Erreur');
-    showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
-  }catch(e){showToast(lang==='en'?'Could not save score: '+e.message:'Impossible de sauvegarder: '+e.message)}
+  }catch(e){/* API not available, local score saved */}
+  showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
 }
 function skipScore(){document.getElementById('score-modal').classList.remove('open')}
 document.getElementById('score-name').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
@@ -553,12 +628,26 @@ function pickLang(l){
   document.getElementById('lang-modal').classList.remove('open');
   setLang(l);
 }
-document.addEventListener('DOMContentLoaded',function(){
-  if(!localStorage.getItem('md-lang')){
-    document.getElementById('lang-modal').classList.add('open');
-  }
-});
+if(!localStorage.getItem('md-lang')){
+  document.getElementById('lang-modal').classList.add('open');
+}
 
 </script>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

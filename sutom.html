@@ -235,6 +235,26 @@ body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(
 
 <div class="toast" id="toast"></div>
 
+<!-- Lang picker modal -->
+<div class="lang-modal-overlay" id="lang-modal">
+  <div class="lang-modal">
+    <div class="lang-modal-icon">🌍</div>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 <script>
 // I18N
 const T={
@@ -246,6 +266,8 @@ const T={
     modal_title:"Ton score !",modal_sub:"Entre ton pseudo pour apparaître dans le leaderboard 🏆",
     modal_ph:"Ton pseudo…",modal_submit:"Enregistrer 🎉",modal_skip:"Non merci",
     not_complete:"Le mot n'est pas complet !",
+    not_word:"Mot inconnu du dictionnaire 📖",
+    checking:"Vérification…",
     wins:["Parfait !","Excellent !","Super !","Bien joué !","Pas mal !","Ouf !"],
     lose:"Raté cette fois…",
   },
@@ -257,6 +279,8 @@ const T={
     modal_title:"Your score!",modal_sub:"Enter your name to appear on the leaderboard 🏆",
     modal_ph:"Your name…",modal_submit:"Save 🎉",modal_skip:"No thanks",
     not_complete:"Word is not complete!",
+    not_word:"Unknown word 📖",
+    checking:"Checking…",
     wins:["Perfect!","Excellent!","Great!","Well done!","Not bad!","Phew!"],
     lose:"Better luck next time…",
   }
@@ -272,7 +296,7 @@ function applyLang(){
   document.getElementById('pill-date').textContent='📅 '+new Date().toLocaleDateString(locale,{weekday:'long',day:'numeric',month:'long'});
   updateTriesPill();
 }
-function setLang(l){lang=l;localStorage.setItem('md-lang',l);applyLang();toggleMenu(true)}
+function setLang(l){if(l===lang)return;localStorage.setItem('md-lang',l);location.reload();}
 
 // GAME
 const WORDS_FR=["MAISON","JARDIN","SOLEIL","MOUTON","CANARD","PIERRE","ARBRES","BALCON","BEAUTE","MANGER","DORMIR","FACILE","RAPIDE","HERBES","CHEMIN","NUAGES","FLEURS","CHARME","BRAISE","SAVOIR","VALISE","MIROIR","DESERT","VOYAGE","PAROLE","NATURE","PLUMES","CANAPE","BUREAU","MARCHE","BATEAU","AVENIR","BOUGIE","CHAUDE","FROIDE","CHEVRE","LIERRE","MENTHE","ORANGE","CERISE","BANANE","MANGUE","CASQUE","FLECHE","NUANCE","TRUITE","SAUMON","JARRES","BOUTON","CRAYON","CAHIER","RIDEAU","CHAISE","DOUCHE","AMUSER","CAMION","CARTON","CHATON","COQUET","DANSER","DEBOUT","DEVANT","DOMINO","FANION","FIABLE","GLOIRE","GRENAT","HILARE","JURONS","LACUNE","LEVIER","MAILLE","MANOIR","MIRAGE","MODELE","MOUSSE","MUSEAU","NAITRE","NIVEAU","NODULE","NOUGAT","OEUVRE","OISEAU"];
@@ -380,9 +404,10 @@ function restoreResultBanner(){
   document.getElementById('result').classList.add('show');
 }
 
+let checking=false;
 function handleKey(k){
-  if(gameOver)return;
-  if(k==='OK'||k==='ENTRÉE')submitGuess();
+  if(gameOver||checking)return;
+  if(k==='OK'||k==='ENTRÉE'){checking=true;submitGuess().finally(()=>{checking=false;});}
   else if(k==='⌫')deleteLetter();
   else if(/^[A-Z]$/.test(k))addLetter(k);
 }
@@ -396,9 +421,47 @@ document.addEventListener('keydown',e=>{
 function norm1(k){return k.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase()}
 function addLetter(l){if(curCol>=WORD_LEN)return;curGuess[curCol]=l;cells[curRow][curCol].textContent=l;cells[curRow][curCol].classList.add('filled');curCol++;saveState()}
 function deleteLetter(){if(curCol<=1)return;curCol--;curGuess[curCol]='';cells[curRow][curCol].textContent='';cells[curRow][curCol].classList.remove('filled');saveState()}
-function submitGuess(){
+// DICTIONARY CHECK
+// Wordlist FR 6 lettres (mots valides pour Sutom)
+const VALID_FR=new Set("MAISON,JARDIN,SOLEIL,MOUTON,CANARD,PIERRE,ARBRES,BALCON,BEAUTE,MANGER,DORMIR,FACILE,RAPIDE,HERBES,CHEMIN,NUAGES,FLEURS,CHARME,BRAISE,SAVOIR,VALISE,MIROIR,DESERT,VOYAGE,PAROLE,NATURE,PLUMES,CANAPE,BUREAU,MARCHE,BATEAU,AVENIR,BOUGIE,CHAUDE,FROIDE,CHEVRE,LIERRE,MENTHE,ORANGE,CERISE,BANANE,MANGUE,CASQUE,FLECHE,NUANCE,TRUITE,SAUMON,JARRES,BOUTON,CRAYON,CAHIER,RIDEAU,CHAISE,DOUCHE,AMUSER,CAMION,CARTON,CHATON,COQUET,DANSER,DEBOUT,DEVANT,DOMINO,FANION,FIABLE,GLOIRE,GRENAT,HILARE,JURONS,LACUNE,LEVIER,MAILLE,MANOIR,MIRAGE,MODELE,MOUSSE,MUSEAU,NAITRE,NIVEAU,NODULE,NOUGAT,OEUVRE,OISEAU,ABIMER,ABSENT,ABSOLU,ABUSER,ACCUSE,ACHEVE,ACTIVE,ADAPTE,ADMIRE,ADOPTE,ADULTE,AFFAME,AGENCE,AGITER,AIGLON,AIMANT,ALERTE,ALIGNE,ALLIER,ALPAGE,AMANDE,AMARRE,AMENDE,AMIDON,AMITIE,AMORCE,ANCIEN,ANGINE,ANNEAU,APERCU,APLOMB,APPRIS,ARDEUR,ARGENT,ARMURE,ARRETE,ARRIVE,ARTERE,ASPECT,ASTUCE,ATTIRE,AUDACE,AUGURE,AURORE,AUTEUR,AUTRES,AVALEE,AVANCE,AVOINE,BAILEE,BAISER,BANDER,BANNIE,BARQUE,BARRER,BASSIN,BEDEAU,BELOTE,BERGER,BLAGUE,BLESSE,BLOTTI,BOISEE,BONNET,BOSSUE,BOTTER,BOUCHE,BOUDER,BOUEUX,BOUGON,BOULET,BOURRE,BOUTER,BRAVER,BRETON,BRIQUE,BRISER,BRODER,BRULER,BRUNIR,CADEAU,CAISSE,CALMER,CAMPER,CANINE,CARAFE,CARNET,CAUSSE,CENDRE,CERTES,CESSER,CHALET,CHAQUE,CHARGE,CHARTE,CHAUME,CLAMER,CLARTE,CLOCHE,COGNER,COLERE,COLLET,COLLER,COMBAT,COMBLE,COMMUN,COPIER,CORDON,CORNER,COUARD,COUDRE,COULEE,COUPER,COURIR,CRACHE,CREVER,CROIRE,CROUPE,CUISSE,DAMNER,DAUBER,DEBILE,DECALE,DECENT,DECIDE,DEDAIN,DEFAUT,DEGOUT,DEHORS,DELIRE,DEMENT,DENOTE,DEPLIE,DEPUIS,DERIVE,DESOLE,DIABLE,DINDON,DOLMEN,DONJON,DOSEUR,DOUBLE,DOUTER,DROITE,EFFACE,ELEVER,EMERGE,EMIRAT,EMPIRE,ENFANT,ENLEVE,ENNEMI,ENTIER,ENTRER,ENVERS,EPOQUE,ERRANT,ESPOIR,ETALER,ETROIT,EVADER,EVOLUE,EXAMEN,EXCITE,EXEMPT,EXPOSE,FACHER,FAIBLE,FAMEUX,FAMINE,FARCES,FATALE,FAVEUR,FENDRE,FERMER,FEROCE,FEUTRE,FIASCO,FIGURE,FLAMME,FLANER,FLAQUE,FLECHI,FLUIDE,FORCER,FORGER,FOUDRE,FOURBE,FOURMI,FRACAS,FRAISE,FRAYER,FRISEE,FRONDE,FUREUR,FUTURE,GAGNER,GALERE,GARDER,GATEAU,GAUCHE,GENDRE,GERBER,GLANER,GLISSE,GONFLE,GORGER,GOUTER,GRUGER,GUIDER,HASARD,HISSER,HUMOUR,IMITER,IMPOSE,INEPTE,IRONIE,JARRET,JETONS,JOVIAL,JOUEUR,LANCER,LANGUE,LARDER,LARGUE,LASSER,LATENT,LAVOIR,LEGERE,LESTER,LEURRE,LIVRER,LOUCHE,MAIGRE,MALICE,MANQUE,MARTYR,MASTIC,MAUDIT,MERITE,METTRE,MIETTE,MODERE,MOMENT,MONTRE,MORDRE,MOTEUR,MOUCHE,MOURIR,MUNIES,MUSARD,NATTES,NAVIRE,NEUTRE,NICHER,NOMMER,NORMES,NOURRI,OBTENU,OFFRIR,OPAQUE,OPPOSE,ORGANE,OUBLIE,PALIER,PARDON,PATRIE,PATRON,PENSER,PERCER,PERDRE,PERMET,PETITE,PHRASE,PIOCHE,PIQUER,PLACER,PLAIRE,PLANER,PLAQUE,PLONGE,PLUTOT,POCHER,POLLEN,PORTER,POTION,POURRI,PREUVE,PRIMER,PRISON,PROPOS,RENARD,RENDRE,REFUGE,RELIER,RETARD,RETENU,REVELE,RISQUE,RONDEUR,RONGER,ROULER,RUSTRE,SABLER,SALUER,SAUTER,SAVEUR,SEDUIRE,SEMBLER,SERMON,SERRER,SIGNAL,SIROTE,SOLDAT,SOMBRE,SONGER,SORTIR,SOURIRE,SUISSE,TACHER,TAILLE,TAMPON,TARDER,TEINTE,TENDRE,TENDUE,TIMIDE,TOLERE,TOMBER,TONNER,TOUCHE,TRAITS,TRESOR,TRESSE,TRISTE,TROUBLE,TROUVER,ULTIME,VALEUR,VANTER,VENTRE,VERSER,VILAIN,VIVANT,VOLEUR,VRILLE,ZAPPER".split(","));
+
+const dictCache={};
+async function checkWord(word,l){
+  // Normalise: uppercase, strip accents
+  const w=word.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const key=l+':'+w;
+  if(key in dictCache) return dictCache[key];
+  try{
+    let ok=false;
+    if(l==='fr'){
+      // 1. Check embedded wordlist first (instant, no network)
+      if(VALID_FR.has(w)){ ok=true; }
+      else {
+        // 2. Fallback: MediaWiki API (supports CORS via origin=*)
+        const r=await fetch(`https://fr.wiktionary.org/w/api.php?action=query&titles=${encodeURIComponent(word.toLowerCase())}&format=json&origin=*`);
+        const d=await r.json();
+        const pages=d.query.pages;
+        ok=!Object.keys(pages).includes('-1');
+      }
+    } else {
+      // English: Free Dictionary API
+      const r=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
+      ok=r.ok;
+    }
+    dictCache[key]=ok;
+    return ok;
+  }catch(e){
+    return true; // fail open if network error
+  }
+}
+
+async function submitGuess(){
   if(curCol<WORD_LEN){shake();showToast(t('not_complete'));return}
   const guess=curGuess.join('');
+  // Check word exists in dictionary
+  showToast(t('checking'));
+  const known=await checkWord(guess,lang);
+  if(!known){shake();showToast(t('not_word'));return}
   const result=Array(WORD_LEN).fill('absent');
   const wa=WORD.split(''),ga=guess.split(''),used=Array(WORD_LEN).fill(false);
   ga.forEach((l,i)=>{if(l===wa[i]){result[i]='correct';used[i]=true}});
@@ -449,6 +512,17 @@ async function submitScore(){
   const name=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
   localStorage.setItem('md-name',name);
   document.getElementById('score-modal').classList.remove('open');
+  // Fallback local storage leaderboard
+  const today=new Date().toISOString().slice(0,10);
+  const lbKey=`lb:${today}`;
+  let scores=[];
+  try{const r=localStorage.getItem(lbKey);if(r)scores=JSON.parse(r)}catch(e){}
+  const normName=s=>s.toLowerCase().trim();
+  const idx=scores.findIndex(s=>normName(s.name)===normName(name)&&s.game==='Sutom');
+  const entry={name,score:pendingScore,game:'Sutom',ts:Date.now()};
+  if(idx>=0){if(pendingScore>scores[idx].score)scores[idx]=entry;}else scores.push(entry);
+  localStorage.setItem(lbKey,JSON.stringify(scores));
+  // Try remote API (Vercel + Upstash)
   try{
     const res=await fetch('/api/leaderboard',{
       method:'POST',
@@ -457,8 +531,8 @@ async function submitScore(){
     });
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Erreur');
-    showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
-  }catch(e){showToast(lang==='en'?'Could not save score: '+e.message:'Impossible de sauvegarder: '+e.message)}
+  }catch(e){/* API not available, local score saved */}
+  showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
 }
 function skipScore(){document.getElementById('score-modal').classList.remove('open')}
 document.getElementById('score-name').addEventListener('keydown',e=>{if(e.key==='Enter')submitScore()});
@@ -486,12 +560,26 @@ function pickLang(l){
   document.getElementById('lang-modal').classList.remove('open');
   setLang(l);
 }
-document.addEventListener('DOMContentLoaded',function(){
-  if(!localStorage.getItem('md-lang')){
-    document.getElementById('lang-modal').classList.add('open');
-  }
-});
+if(!localStorage.getItem('md-lang')){
+  document.getElementById('lang-modal').classList.add('open');
+}
 
 </script>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

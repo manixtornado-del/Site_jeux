@@ -274,6 +274,26 @@ footer{position:relative;z-index:10;text-align:center;padding:1.2rem 1rem;font-s
 
 <footer data-i18n="footer"></footer>
 
+<!-- Lang picker modal -->
+<div class="lang-modal-overlay" id="lang-modal">
+  <div class="lang-modal">
+    <div class="lang-modal-icon">🌍</div>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 <script>
 const T = {
   fr:{
@@ -344,12 +364,18 @@ document.getElementById('stat-streak').textContent=s.streak;
 function escHtml(v){ return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
 
 async function loadLeaderboard(){
+  const today=new Date().toISOString().slice(0,10);
+  const lbKey=`lb:${today}`;
+  // Try remote API first
   try{
-    const today=new Date().toISOString().slice(0,10);
     const res=await fetch(`/api/leaderboard?date=${today}`);
-    const data=await res.json();
-    renderLb(data.scores||[]);
-  }catch(e){ renderLb([]); }
+    if(res.ok){const data=await res.json();renderLb(data.scores||[]);return;}
+  }catch(e){}
+  // Fallback: localStorage
+  try{
+    const r=localStorage.getItem(lbKey);
+    renderLb(r?JSON.parse(r):[]);
+  }catch(e){renderLb([]);}
 }
 
 function renderLb(scores){
@@ -396,12 +422,26 @@ function pickLang(l){
   document.getElementById('lang-modal').classList.remove('open');
   setLang(l);
 }
-document.addEventListener('DOMContentLoaded',function(){
-  if(!localStorage.getItem('md-lang')){
-    document.getElementById('lang-modal').classList.add('open');
-  }
-});
+if(!localStorage.getItem('md-lang')){
+  document.getElementById('lang-modal').classList.add('open');
+}
 
 </script>
+    <div class="lang-modal-title">Choisissez votre langue</div>
+    <div class="lang-modal-sub">Choose your language · Vous pourrez changer à tout moment</div>
+    <div class="lang-choices">
+      <button class="lang-choice" onclick="pickLang('fr')">
+        <span class="lang-choice-flag">🇫🇷</span>
+        <span class="lang-choice-name">Français</span>
+        <span class="lang-choice-sub">Mots français</span>
+      </button>
+      <button class="lang-choice" onclick="pickLang('en')">
+        <span class="lang-choice-flag">🇬🇧</span>
+        <span class="lang-choice-name">English</span>
+        <span class="lang-choice-sub">English words</span>
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
