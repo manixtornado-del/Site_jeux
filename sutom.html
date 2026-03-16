@@ -530,7 +530,7 @@ async function submitScore(){
     input.placeholder=lang==='en'?'This name is taken, try another…':'Ce pseudo est pris, essaie un autre…';
     input.style.borderColor='var(--rose-d)';
     setTimeout(()=>{input.placeholder=t('modal_ph');input.style.borderColor='';},3000);
-    showToast(lang==='en'?'Name already taken today! 🙈':'Pseudo déjà pris aujourd'hui ! 🙈');
+    showToast(lang==='en'?'Name already taken today! 🙈':'Pseudo déjà pris aujourd\'hui ! 🙈');
     document.getElementById('score-modal').classList.add('open');
     return;
   }
