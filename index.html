@@ -110,6 +110,9 @@ main{position:relative;z-index:10;max-width:820px;margin:0 auto;padding:0 1rem 4
 .card-soon1 .card-tag{background:rgba(197,240,224,.4);color:var(--menthe-d)}
 .card-soon2 .card-tag{background:rgba(251,213,181,.4);color:var(--pêche-d)}
 
+.card-phone .card-color-blob{background:var(--menthe)}
+.card-phone .card-icon-wrap{background:rgba(197,240,224,.35)}
+.card-phone .card-tag{background:rgba(197,240,224,.4);color:var(--menthe-d)}
 /* LEADERBOARD */
 .lb-card{background:var(--blanc);border-radius:20px;padding:1.2rem 1.1rem;box-shadow:0 4px 20px var(--shadow);border:1.5px solid rgba(180,130,110,.1);margin-bottom:2rem}
 .lb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.4rem}
@@ -172,6 +175,7 @@ footer{position:relative;z-index:10;text-align:center;padding:1.2rem 1rem;font-s
     <li><a href="index.html" class="active" data-i18n="home"></a></li>
     <li><a href="sutom.html" data-i18n="sutom"></a></li>
     <li><a href="wiki.html" data-i18n="wiki"></a></li>
+    <li><a href="game.html" data-i18n="game_nav"></a></li>
   </ul>
   <div class="nav-right">
     <div class="lang-toggle">
@@ -188,6 +192,7 @@ footer{position:relative;z-index:10;text-align:center;padding:1.2rem 1rem;font-s
   <a href="index.html" class="active" data-i18n="home"></a>
   <a href="sutom.html" data-i18n="sutom"></a>
   <a href="wiki.html" data-i18n="wiki"></a>
+  <a href="game.html" data-i18n="game_nav"></a>
   <div class="drawer-lang">
     <span class="drawer-lang-label">🌍</span>
     <div class="lang-toggle">
@@ -241,6 +246,16 @@ footer{position:relative;z-index:10;text-align:center;padding:1.2rem 1rem;font-s
       <span class="card-tag" data-i18n="card_wiki_tag"></span>
       <h2 class="card-title" data-i18n="wiki_nav"></h2>
       <p class="card-desc" data-i18n="card_wiki_desc"></p>
+      <div class="card-footer">
+        <div class="card-status"><span class="status-dot"></span><span style="color:var(--menthe-d)" data-i18n="available"></span></div>
+        <button class="card-btn" data-i18n="play"></button>
+      </div>
+    </a>
+    <a class="game-card card-phone" href="game.html" style="animation-delay:.3s">
+      <div class="card-color-blob"></div><div class="card-icon-wrap">🎨</div>
+      <span class="card-tag" data-i18n="card_phone_tag"></span>
+      <h2 class="card-title" data-i18n="card_phone_title"></h2>
+      <p class="card-desc" data-i18n="card_phone_desc"></p>
       <div class="card-footer">
         <div class="card-status"><span class="status-dot"></span><span style="color:var(--menthe-d)" data-i18n="available"></span></div>
         <button class="card-btn" data-i18n="play"></button>
