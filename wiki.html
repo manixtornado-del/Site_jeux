@@ -468,8 +468,10 @@ async function checkWord(word,l){
         ok=!Object.keys(d.query.pages).includes('-1');
       }
     } else {
-      const r=await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word.toLowerCase()}`);
-      ok=r.ok;
+      // Datamuse: accepts all valid English words including conjugated forms
+      const r=await fetch(`https://api.datamuse.com/words?sp=${word.toLowerCase()}&max=1`);
+      const d=await r.json();
+      ok=d.length>0&&d[0].word.toLowerCase()===word.toLowerCase();
     }
     dictCache[key]=ok;
     return ok;
@@ -557,20 +559,36 @@ function openScoreModal(){
   document.getElementById('score-modal').classList.add('open');
 }
 async function submitScore(){
-  const name=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
-  localStorage.setItem('md-name',name);
-  document.getElementById('score-modal').classList.remove('open');
-  // Fallback local storage leaderboard
+  const nameRaw=(document.getElementById('score-name').value.trim()||(lang==='en'?'Anonymous':'Anonyme')).slice(0,20);
+  const normName=s=>s.toLowerCase().trim();
   const today=new Date().toISOString().slice(0,10);
   const lbKey=`lb:${today}`;
+  let existingScores=[];
+  try{
+    const res=await fetch(`/api/leaderboard?date=${today}`);
+    if(res.ok){const d=await res.json();existingScores=d.scores||[];}
+    else{const r=localStorage.getItem(lbKey);if(r)existingScores=JSON.parse(r);}
+  }catch(e){try{const r=localStorage.getItem(lbKey);if(r)existingScores=JSON.parse(r);}catch(e2){}}
+  const alreadyTaken=existingScores.some(s=>normName(s.name)===normName(nameRaw)&&s.game==='Wiki');
+  if(alreadyTaken){
+    const input=document.getElementById('score-name');
+    input.value='';
+    input.placeholder=lang==='en'?'This name is taken, try another…':'Ce pseudo est pris, essaie un autre…';
+    input.style.borderColor='var(--lavande-d)';
+    setTimeout(()=>{input.placeholder=t('modal_ph');input.style.borderColor='';},3000);
+    showToast(lang==='en'?'Name already taken today! 🙈':'Pseudo déjà pris aujourd'hui ! 🙈');
+    document.getElementById('score-modal').classList.add('open');
+    return;
+  }
+  const name=nameRaw;
+  localStorage.setItem('md-name',name);
+  document.getElementById('score-modal').classList.remove('open');
   let scores=[];
   try{const r=localStorage.getItem(lbKey);if(r)scores=JSON.parse(r)}catch(e){}
-  const normName=s=>s.toLowerCase().trim();
   const idx=scores.findIndex(s=>normName(s.name)===normName(name)&&s.game==='Wiki');
   const entry={name,score:pendingScore,game:'Wiki',ts:Date.now()};
   if(idx>=0){if(pendingScore>scores[idx].score)scores[idx]=entry;}else scores.push(entry);
   localStorage.setItem(lbKey,JSON.stringify(scores));
-  // Try remote API (Vercel + Upstash)
   try{
     const res=await fetch('/api/leaderboard',{
       method:'POST',
@@ -579,7 +597,7 @@ async function submitScore(){
     });
     const data=await res.json();
     if(!res.ok) throw new Error(data.error||'Erreur');
-  }catch(e){/* API not available, local score saved */}
+  }catch(e){}
   showToast(lang==='en'?'Score saved! 🏆':'Score enregistré ! 🏆');
 }
 function skipScore(){document.getElementById('score-modal').classList.remove('open')}

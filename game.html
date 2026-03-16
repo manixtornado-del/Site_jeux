@@ -270,16 +270,16 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none;background:#f
 
 <script>
 // ─── CONFIG ─────────────────────────────────────────────────────────────────
-// Auth via token Vercel (ne pas mettre la clé Ably dans le HTML !)
-// Si tu veux tester en local rapidement, remplace authUrl par: key: 'TA_CLE_ABLY'
-const ABLY_AUTH = { authUrl: '/api/token', authParams: { clientId: myId } };
-const DRAW_TIME = 90;  // secondes pour dessiner
-const GUESS_TIME = 60; // secondes pour deviner
-
 // ─── STATE ──────────────────────────────────────────────────────────────────
 let ably, channel;
 let myId   = Math.random().toString(36).slice(2,8);
 let myName = '';
+
+// Auth via token Vercel — myId doit être déclaré avant
+// Si tu veux tester en local, remplace par: key: 'TA_CLE_ABLY'
+const ABLY_AUTH = { authUrl: '/api/token', authParams: { clientId: myId } };
+const DRAW_TIME = 90;  // secondes pour dessiner
+const GUESS_TIME = 60; // secondes pour deviner
 let roomCode = '';
 let isHost   = false;
 let players  = {}; // {id: {name, avatar}}
