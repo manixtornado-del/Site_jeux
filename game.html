@@ -18,7 +18,6 @@
   --shadow:rgba(180,130,110,0.15);
   --nav-h:56px;
 }
-html{scroll-behavior:smooth}
 body{font-family:'Quicksand',sans-serif;background:var(--creme);color:var(--texte);min-height:100vh;overflow-x:hidden}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(circle at 15% 15%,rgba(247,197,213,.28) 0%,transparent 50%),radial-gradient(circle at 85% 85%,rgba(212,197,247,.22) 0%,transparent 50%);pointer-events:none;z-index:0}
 .nav{position:sticky;top:0;z-index:100;height:var(--nav-h);background:rgba(254,248,240,.92);backdrop-filter:blur(14px);border-bottom:1.5px solid rgba(180,130,110,.1);padding:0 1rem;display:flex;align-items:center;justify-content:space-between}
@@ -40,7 +39,7 @@ input[type=text]::placeholder{font-family:'Quicksand',sans-serif;font-weight:500
 .btn{background:var(--texte);color:var(--blanc);border:none;border-radius:100px;padding:.6rem 1.4rem;font-family:'Quicksand',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:background .2s,transform .15s;display:inline-flex;align-items:center;gap:.35rem;text-decoration:none}
 .btn:hover{background:var(--brun-d);transform:scale(1.02)}
 .btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn:disabled{opacity:.4;cursor:default;transform:none!important}
 .btn-full{width:100%;justify-content:center}
 .btn-rose{background:var(--rose-d)}.btn-rose:hover{background:#d4607a}
 .btn-outline{background:transparent;color:var(--texte-doux);border:1.5px solid rgba(180,130,110,.3)}.btn-outline:hover{background:var(--beige);transform:none}
@@ -52,8 +51,7 @@ input[type=text]::placeholder{font-family:'Quicksand',sans-serif;font-weight:500
 .player-row{display:flex;align-items:center;gap:.6rem;padding:.55rem .8rem;background:var(--beige);border-radius:12px;font-weight:600;font-size:.88rem}
 .player-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
 .me-badge{font-size:.7rem;color:var(--rose-d);font-weight:700;margin-left:auto;background:var(--rose);padding:.15rem .5rem;border-radius:100px}
-.dots{display:inline-flex;gap:4px;margin-left:4px}
-.dots span{width:5px;height:5px;border-radius:50%;background:var(--texte-doux);animation:dot .9s ease-in-out infinite}
+.dots span{width:5px;height:5px;border-radius:50%;background:var(--texte-doux);animation:dot .9s ease-in-out infinite;display:inline-block;margin:0 2px}
 .dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
 @keyframes dot{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 .timer-row{display:flex;align-items:center;gap:.7rem;margin-bottom:.8rem}
@@ -63,57 +61,38 @@ input[type=text]::placeholder{font-family:'Quicksand',sans-serif;font-weight:500
 .phase-pill{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:.22rem .7rem;border-radius:100px;margin-bottom:.8rem}
 .phase-draw{background:rgba(247,197,213,.4);color:var(--rose-d)}
 .phase-guess{background:rgba(212,197,247,.4);color:var(--lavande-d)}
-.prompt-box{background:var(--lavande);border-radius:14px;padding:.8rem 1.1rem;text-align:center;margin-bottom:1rem}
+.prompt-box{background:var(--lavande);border-radius:14px;padding:.8rem 1.1rem;text-align:center;margin-bottom:.8rem}
 .prompt-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--lavande-d);margin-bottom:.2rem}
 .prompt-word{font-family:'Nunito',sans-serif;font-size:1.5rem;font-weight:900;color:var(--texte)}
-.canvas-wrap{border-radius:16px;overflow:hidden;box-shadow:0 3px 14px var(--shadow);border:2px solid rgba(180,130,110,.15);margin-bottom:.8rem;background:#fff}
+/* CANVAS */
+.canvas-wrap{border-radius:16px;overflow:hidden;box-shadow:0 3px 14px var(--shadow);border:2px solid rgba(180,130,110,.15);margin-bottom:.65rem;background:#fff;position:relative}
 canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
 .canvas-img{display:block;width:100%;border-radius:14px;border:2px solid rgba(180,130,110,.15);margin-bottom:.8rem}
-.toolbar{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-bottom:.7rem}
-.color-swatch{width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;flex-shrink:0}
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.55rem;padding:.55rem .7rem;background:var(--blanc);border-radius:14px;box-shadow:0 2px 10px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
+.tool-group{display:flex;align-items:center;gap:.35rem}
+.tool-sep{width:1px;height:26px;background:rgba(180,130,110,.18);flex-shrink:0;margin:0 .1rem}
+.tb-btn{width:34px;height:34px;border-radius:10px;border:1.5px solid rgba(180,130,110,.18);background:var(--beige);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:background .12s,border-color .12s,transform .1s;flex-shrink:0}
+.tb-btn:hover{background:var(--rose);border-color:var(--rose-d);transform:scale(1.08)}
+.tb-btn.active{background:var(--texte);border-color:var(--texte);color:#fff}
+.tb-btn:disabled{opacity:.35;cursor:default;transform:none!important}
+.color-swatch{width:28px;height:28px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:transform .12s,border-color .12s;flex-shrink:0}
 .color-swatch.active,.color-swatch:hover{border-color:var(--texte);transform:scale(1.18)}
-.size-btn{width:30px;height:30px;border-radius:50%;background:var(--beige);border:1.5px solid rgba(180,130,110,.2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
-.size-btn.active{background:var(--texte)}
-.size-btn.active .dot{background:#fff}
-.dot{border-radius:50%;background:var(--texte);pointer-events:none}
-.tool-sep{width:1px;height:26px;background:rgba(180,130,110,.2);flex-shrink:0}
-.tool-btn{padding:.3rem .7rem;border-radius:100px;font-size:.75rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(180,130,110,.2);background:var(--beige);color:var(--texte-doux);transition:background .15s}
-.tool-btn.active{background:var(--texte);color:#fff;border-color:var(--texte)}
+.size-dot{border-radius:50%;background:currentColor;pointer-events:none}
+/* GUESS */
 .guess-row{display:flex;gap:.5rem;margin-top:.5rem}
 .guess-row input{flex:1;margin-bottom:0}
+/* WAITING */
 .waiting-card{text-align:center;padding:2.5rem 1.5rem}
 .waiting-icon{font-size:3rem;margin-bottom:.8rem;animation:bob 2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.result-chain{display:flex;flex-direction:column;gap:.8rem}
+/* RESULTS */
+.result-chain{display:flex;flex-direction:column;gap:.8rem;margin-bottom:1rem}
 .chain-group{margin-bottom:1.5rem}
-.chain-group-title{font-size:.78rem;font-weight:700;color:var(--texte-doux);text-align:center;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem}
-.chain-step{border-radius:16px;overflow:hidden;border:1.5px solid rgba(180,130,110,.12);background:var(--blanc);box-shadow:0 3px 12px var(--shadow);animation:fadeUp .4s ease backwards}
-.step-header{padding:.6rem 1rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:700}
-.step-header.draw{background:rgba(247,197,213,.2)}
-.step-header.guess{background:rgba(212,197,247,.2)}
-.step-header.word{background:rgba(197,240,224,.2)}
-.step-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
-.step-type{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--texte-doux);margin-left:auto}
-.step-text{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;padding:.7rem 1rem}
-.step-img{width:100%;display:block}
-.step-hidden{background:var(--beige);border-radius:14px;height:60px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--texte-doux);font-weight:600}
-.reveal-chain-title{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;text-align:center;margin:1rem 0 .5rem;color:var(--texte-doux)}
-
-.word-input-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.5rem 0}
-.word-big-input{width:100%;height:60px;border-radius:16px;border:2.5px solid rgba(180,130,110,.25);background:var(--beige);font-family:'Nunito',sans-serif;font-size:1.4rem;font-weight:800;color:var(--texte);padding:0 1.2rem;outline:none;text-align:center;transition:border-color .15s;letter-spacing:.04em}
-.word-big-input:focus{border-color:var(--rose-d);box-shadow:0 0 0 3px rgba(232,128,158,.15)}
-.word-big-input::placeholder{font-size:1rem;font-weight:500;font-family:'Quicksand',sans-serif;letter-spacing:0}
-.word-examples{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
-.word-ex{background:var(--beige);border:1.5px solid rgba(180,130,110,.2);border-radius:100px;padding:.2rem .65rem;font-size:.76rem;font-weight:600;color:var(--texte-doux);cursor:pointer;transition:background .15s}
-.word-ex:hover{background:var(--rose);color:var(--texte)}
-
-/* REVEAL */
-.reveal-chain{display:flex;flex-direction:column;gap:.8rem}
-.chain-group{margin-bottom:1.5rem}
-.chain-group-title{font-size:.78rem;font-weight:700;color:var(--texte-doux);text-align:center;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem}
+.chain-group-title{font-size:.78rem;font-weight:700;color:var(--texte-doux);text-align:center;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem;padding:.4rem;background:var(--beige);border-radius:100px}
 .chain-step{border-radius:16px;overflow:hidden;border:1.5px solid rgba(180,130,110,.12);background:var(--blanc);box-shadow:0 3px 12px var(--shadow)}
-.chain-step.hidden{opacity:0;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease}
-.chain-step.visible{opacity:1;transform:translateY(0)}
+.chain-step.revealed{animation:popIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
 .step-header{padding:.6rem 1rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:700}
 .step-header.draw{background:rgba(247,197,213,.2)}
 .step-header.guess{background:rgba(212,197,247,.2)}
@@ -122,27 +101,16 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
 .step-type{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--texte-doux);margin-left:auto}
 .step-text{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;padding:.7rem 1rem}
 .step-img{width:100%;display:block}
-.step-hidden{background:var(--beige);border-radius:14px;height:60px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--texte-doux);font-weight:600}
-.reveal-chain-title{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;text-align:center;margin:1rem 0 .5rem;color:var(--texte-doux)}
-.reveal-controls{display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;position:sticky;bottom:1rem;z-index:20}
-.audience-hint{text-align:center;font-size:.83rem;color:var(--texte-doux);margin-top:.5rem;font-style:italic}
-
-.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;font-weight:600;font-size:.88rem;z-index:300;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
-.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.step-hidden{background:var(--beige);height:56px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--texte-doux);font-weight:600;gap:.4rem}
+/* REVEAL BAR */
+.reveal-bar{position:sticky;bottom:1rem;z-index:50;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;padding:.75rem;background:rgba(254,248,240,.95);backdrop-filter:blur(10px);border-radius:20px;box-shadow:0 4px 24px var(--shadow);border:1.5px solid rgba(180,130,110,.12);margin-top:.5rem}
+/* STATUS */
 .status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem}
 .status-pill{background:var(--blanc);border-radius:100px;padding:.26rem .75rem;font-size:.73rem;font-weight:600;color:var(--texte-doux);box-shadow:0 2px 8px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
-@media(max-width:480px){.toolbar{gap:.3rem}.color-swatch{width:24px;height:24px}}
-
-/* WORD INPUT */
-.word-input-card{text-align:center;padding:1.5rem}
-.word-suggestions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.8rem 0}
-.word-chip{background:var(--beige);border:1.5px solid rgba(180,130,110,.2);border-radius:100px;padding:.3rem .85rem;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
-.word-chip:hover{background:var(--rose);border-color:var(--rose-d)}
-/* REVEAL */
-.reveal-controls{display:flex;gap:.6rem;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
-.reveal-step{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
-.reveal-step.shown{opacity:1;transform:translateY(0)}
-.reveal-counter{font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;color:var(--texte-doux);text-align:center;margin-bottom:.8rem}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;font-weight:600;font-size:.88rem;z-index:300;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:480px){.toolbar{gap:.3rem}.color-swatch{width:24px;height:24px}.tb-btn{width:30px;height:30px}}
 </style>
 </head>
 <body>
@@ -151,34 +119,6 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   <a href="index.html" class="nav-back">← Accueil</a>
 </nav>
 <div class="page">
-
-
-<!-- WORD CHOICE -->
-<div id="screen-word" class="screen">
-  <div class="card">
-    <span class="card-icon">💭</span>
-    <div class="card-title">Choisis ton mot</div>
-    <div class="card-sub">Les autres joueurs devront le deviner à travers tes dessins !</div>
-    <div class="word-input-wrap">
-      <input type="text" class="word-big-input" id="word-inp" placeholder="Tape un mot…" maxlength="30" />
-      <div class="word-examples" id="word-examples"></div>
-    </div>
-    <button class="btn btn-full btn-rose" style="margin-top:.5rem" onclick="confirmWord()">✅ Valider ce mot</button>
-  </div>
-</div>
-
-
-<!-- REVEAL -->
-<div id="screen-reveal" class="screen">
-  <div class="card" style="text-align:center;margin-bottom:1rem">
-    <span class="card-icon">🎬</span>
-    <div class="card-title" id="reveal-title">Révélation !</div>
-    <div class="card-sub" id="reveal-sub">L'hôte dévoile les chaînes…</div>
-  </div>
-  <div id="reveal-chain" class="reveal-chain"></div>
-  <div class="reveal-controls" id="reveal-controls"></div>
-  <div class="audience-hint" id="audience-hint"></div>
-</div>
 
 <!-- HOME -->
 <div id="screen-home" class="screen active">
@@ -211,51 +151,14 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
       <div style="font-size:.72rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.45rem">🔤 Ton mot à faire deviner</div>
       <div style="display:flex;gap:.5rem">
         <input type="text" id="inp-word" placeholder="Entre un mot…" maxlength="30" style="margin-bottom:0;flex:1" />
-        <button class="btn btn-sm btn-rose" onclick="lockWord()">✓ Valider</button>
+        <button class="btn btn-sm btn-rose" id="btn-lock-word" onclick="lockWord()">✓ Valider</button>
       </div>
       <div id="word-locked-msg" style="display:none;font-size:.8rem;color:var(--menthe-d);font-weight:700;margin-top:.4rem">✅ Mot validé !</div>
     </div>
     <div id="lobby-hint" style="text-align:center;font-size:.83rem;color:var(--texte-doux);margin-bottom:.8rem">
       En attente de joueurs<span class="dots"><span></span><span></span><span></span></span>
     </div>
-    <button class="btn btn-full btn-rose" id="btn-start" onclick="startGame()" style="display:none">🎮 Lancer la partie !</button>
-  </div>
-</div>
-
-<!-- WORD CHOICE -->
-<div id="screen-word" class="screen">
-  <div class="card" style="text-align:center;padding:2rem 1.5rem">
-    <span class="card-icon">✍️</span>
-    <div class="card-title">Choisis ton mot</div>
-    <div class="card-sub">Entre le mot que les autres devront deviner.<br>Sois créatif !</div>
-    <input type="text" id="word-inp" placeholder="Ton mot secret…" maxlength="30" style="font-size:1.1rem;text-align:center" />
-    <button class="btn btn-full btn-rose" id="btn-confirm-word" onclick="confirmWord()">✅ Valider mon mot</button>
-  </div>
-  <div class="card" id="word-waiting-card" style="display:none">
-    <div style="text-align:center;padding:1rem">
-      <div style="font-size:1.5rem;margin-bottom:.5rem">⏳</div>
-      <div style="font-family:'Nunito',sans-serif;font-weight:800;margin-bottom:.3rem">Mot enregistré !</div>
-      <div id="word-wait-status" style="font-size:.85rem;color:var(--texte-doux)">En attente des autres joueurs…</div>
-      <div id="word-ready-list" style="margin-top:.8rem;display:flex;flex-direction:column;gap:.4rem"></div>
-    </div>
-  </div>
-</div>
-
-
-
-<!-- WORD INPUT -->
-<div id="screen-word" class="screen">
-  <div class="card" style="text-align:center;padding:2rem 1.5rem">
-    <span class="card-icon">✍️</span>
-    <div class="card-title">Ton mot secret</div>
-    <div class="card-sub" id="word-sub">Choisis un mot que les autres devront dessiner !</div>
-  </div>
-  <div class="card">
-    <input type="text" id="inp-word" placeholder="Ton mot secret…" maxlength="30" />
-    <div id="word-hint" style="text-align:center;font-size:.82rem;color:var(--texte-doux);margin-bottom:.8rem;display:none">
-      En attente des autres joueurs<span class="dots"><span></span><span></span><span></span></span>
-    </div>
-    <button class="btn btn-full btn-rose" id="btn-word" onclick="submitWord()">✅ Valider mon mot</button>
+    <button class="btn btn-full btn-rose" id="btn-start" onclick="startGame()" style="display:none" disabled>⏳ En attente des mots…</button>
   </div>
 </div>
 
@@ -274,18 +177,36 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
     <div class="timer-bar-bg"><div class="timer-bar" id="tbar-d"></div></div>
     <div class="timer-num" id="tnum-d">90</div>
   </div>
-  <div class="canvas-wrap"><canvas id="canvas" height="340"></canvas></div>
-  <div class="toolbar">
-    <button class="tool-btn" id="btn-eraser" onclick="toggleEraser()">⬜ Gomme</button>
-    <button class="tool-btn" onclick="clearCanvas()">🗑 Effacer</button>
+  <div class="canvas-wrap"><canvas id="canvas" height="360"></canvas></div>
+  <!-- TOOLBAR -->
+  <div class="toolbar" id="toolbar">
+    <!-- Actions -->
+    <div class="tool-group">
+      <button class="tb-btn" id="btn-undo" onclick="undo()" title="Annuler (Ctrl+Z)">↩</button>
+      <button class="tb-btn" onclick="clearCanvas()" title="Tout effacer">🗑</button>
+    </div>
     <div class="tool-sep"></div>
-    <button class="size-btn active" onclick="setSize(4,this)"><span class="dot" style="width:6px;height:6px"></span></button>
-    <button class="size-btn" onclick="setSize(10,this)"><span class="dot" style="width:11px;height:11px"></span></button>
-    <button class="size-btn" onclick="setSize(20,this)"><span class="dot" style="width:18px;height:18px"></span></button>
+    <!-- Tools -->
+    <div class="tool-group">
+      <button class="tb-btn active" id="btn-pen" onclick="setTool('pen')" title="Crayon">✏️</button>
+      <button class="tb-btn" id="btn-eraser" onclick="setTool('eraser')" title="Gomme">⬜</button>
+      <button class="tb-btn" id="btn-fill" onclick="setTool('fill')" title="Seau de peinture">🪣</button>
+      <button class="tb-btn" id="btn-line" onclick="setTool('line')" title="Ligne">╱</button>
+      <button class="tb-btn" id="btn-rect" onclick="setTool('rect')" title="Rectangle">▭</button>
+      <button class="tb-btn" id="btn-circle" onclick="setTool('circle')" title="Cercle">◯</button>
+    </div>
     <div class="tool-sep"></div>
-    <div id="palette" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
+    <!-- Sizes -->
+    <div class="tool-group">
+      <button class="tb-btn active" id="sz-1" onclick="setSize(3,this)" title="Petit"><span class="size-dot" style="width:6px;height:6px;background:var(--texte)"></span></button>
+      <button class="tb-btn" id="sz-2" onclick="setSize(8,this)" title="Moyen"><span class="size-dot" style="width:11px;height:11px;background:var(--texte)"></span></button>
+      <button class="tb-btn" id="sz-3" onclick="setSize(18,this)" title="Grand"><span class="size-dot" style="width:18px;height:18px;background:var(--texte)"></span></button>
+    </div>
+    <div class="tool-sep"></div>
+    <!-- Colors -->
+    <div class="tool-group" id="palette"></div>
   </div>
-  <button class="btn btn-full" onclick="submitDrawing()">✅ Envoyer mon dessin</button>
+  <button class="btn btn-full" onclick="submitDrawing()" style="margin-top:.3rem">✅ Envoyer mon dessin</button>
 </div>
 
 <!-- GUESS -->
@@ -307,45 +228,6 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   </div>
 </div>
 
-
-<!-- WORD INPUT -->
-<div id="screen-word" class="screen">
-  <div class="card word-input-card">
-    <span class="card-icon">✍️</span>
-    <div class="card-title">Choisis ton mot</div>
-    <div class="card-sub">Ce mot sera dessiné par le joueur suivant</div>
-    <input type="text" id="word-inp" placeholder="Ton mot…" maxlength="30" style="text-align:center;font-size:1.1rem" />
-    <div class="word-suggestions" id="word-sugg"></div>
-    <div id="word-timer-row" class="timer-row">
-      <span style="font-size:.8rem">⏱</span>
-      <div class="timer-bar-bg"><div class="timer-bar" id="tbar-w"></div></div>
-      <div class="timer-num" id="tnum-w">30</div>
-    </div>
-    <button class="btn btn-full btn-rose" onclick="submitWord()">✅ Valider ce mot</button>
-  </div>
-</div>
-
-<!-- REVEAL (host-controlled) -->
-<div id="screen-reveal" class="screen">
-  <div class="card" style="text-align:center;margin-bottom:1rem">
-    <span class="card-icon">🎬</span>
-    <div class="card-title" id="reveal-chain-title">Révélation !</div>
-    <div class="card-sub">L'hôte dévoile la chaîne étape par étape</div>
-  </div>
-  <div id="reveal-chain-title-2" class="chain-group-title" style="margin-bottom:.8rem"></div>
-  <div id="reveal-steps" class="result-chain"></div>
-  <div id="reveal-controls" class="reveal-controls" style="display:none">
-    <button class="btn btn-rose" id="btn-next-step" onclick="revealNextStep()">▶ Étape suivante</button>
-    <button class="btn btn-outline" id="btn-next-chain" onclick="revealNextChain()" style="display:none">⏭ Chaîne suivante →</button>
-  </div>
-  <div id="reveal-waiting" style="text-align:center;font-size:.83rem;color:var(--texte-doux);padding:.5rem">
-    <span class="dots"><span></span><span></span><span></span></span> En attente de l'hôte…
-  </div>
-  <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem">
-    <button class="btn btn-outline btn-sm" id="btn-end-reveal" onclick="endReveal()" style="display:none">🏠 Terminer</button>
-  </div>
-</div>
-
 <!-- WAITING -->
 <div id="screen-waiting" class="screen">
   <div class="card waiting-card">
@@ -355,584 +237,498 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   </div>
 </div>
 
-
-<!-- REVEAL -->
-<div id="screen-reveal" class="screen">
-  <div class="card" style="text-align:center;margin-bottom:.8rem">
-    <span class="card-icon" id="rev-chain-icon">🎨</span>
-    <div class="card-title" id="rev-chain-title">Chaîne de …</div>
-    <div class="card-sub" id="rev-chain-sub">Voici comment ça s'est passé…</div>
-  </div>
-  <div id="rev-steps" class="result-chain" style="margin-bottom:1rem"></div>
-  <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap" id="rev-btns">
-    <button class="btn btn-rose" id="btn-rev-next" onclick="hostRevealNext()">Révéler ➜</button>
-  </div>
-  <div style="text-align:center;margin-top:.6rem">
-    <span id="rev-progress" style="font-size:.75rem;color:var(--texte-doux);font-weight:600"></span>
-  </div>
-</div>
-
 <!-- RESULTS -->
 <div id="screen-results" class="screen">
   <div class="card" style="text-align:center;margin-bottom:1rem">
     <span class="card-icon">🎉</span>
-    <div class="card-title" id="res-title">La chaîne complète !</div>
+    <div class="card-title">La chaîne complète !</div>
     <div class="card-sub" id="res-sub">Voici comment l'histoire s'est transformée…</div>
   </div>
   <div id="result-chain" class="result-chain"></div>
-  <div id="reveal-controls" style="display:none;text-align:center;margin:1rem 0">
-    <button class="btn btn-rose" id="btn-reveal-next" onclick="revealNext()">▶ Révéler l'étape suivante</button>
+  <!-- REVEAL BAR — shown to host and after all revealed -->
+  <div class="reveal-bar" id="reveal-bar" style="display:none">
+    <button class="btn btn-rose" id="btn-reveal" onclick="revealNext()">▶ Révéler l'étape suivante</button>
+    <button class="btn btn-outline" id="btn-replay" onclick="backToLobby()" style="display:none">🔄 Rejouer</button>
+    <a href="index.html" class="btn btn-outline" id="btn-home" style="display:none">🏠 Accueil</a>
   </div>
-  <div id="reveal-done-btns" style="display:none;display:flex;gap:.6rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap">
+  <!-- Non-host: just replay buttons after all revealed -->
+  <div id="done-bar" style="display:none;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-top:1rem">
     <button class="btn btn-rose" onclick="backToLobby()">🔄 Rejouer</button>
     <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
   </div>
 </div>
 
-</div>
+</div><!-- /page -->
 <div class="toast" id="toast"></div>
 
 <script>
 // ── CONSTANTS ────────────────────────────────────────────────────────────────
 const DRAW_SECS  = 90;
 const GUESS_SECS = 60;
-const COLORS     = ['#4a3728','#e8809e','#9b82e0','#5bc9a0','#f09460','#d97706','#3b82f6','#ef4444','#10b981','#ffffff'];
+const COLORS     = ['#222222','#e8809e','#9b82e0','#5bc9a0','#f09460','#d97706','#3b82f6','#ef4444','#10b981','#f5ede0','#ffffff'];
 const AVATARS    = ['🐱','🐶','🐸','🦊','🐨','🐼','🐻','🦁','🐯','🐮','🐷','🐙'];
+const BGSWATCH   = ['#fde68a','#c5f0e0','#d4c5f7','#f7c5d5','#fbd5b5','#c5e8f7'];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let myId   = Math.random().toString(36).slice(2, 8);
-let myName = '';
+let myId     = Math.random().toString(36).slice(2,8);
+let myName   = '';
 let roomCode = '';
 let isHost   = false;
 let ably, channel;
-let players  = {};   // { id: {name, avatar, bg, wordReady} }
-let myWord   = '';   // mot choisi par ce joueur
+let players  = {};
+let myWord   = '';
 let game     = null;
 let pending  = {};
 let timerInt = null;
-let brushColor = '#4a3728', brushSize = 4, erasing = false, painting = false;
 
-// reveal state (results screen)
-let revealData    = null;  // { chains, prompts, players }
-let revealChains  = [];    // array of chains to reveal (one per starter)
-let revealChainIdx = 0;    // which chain we're currently revealing
-let revealStepIdx  = 0;    // which step within that chain
+// Canvas state
+let curTool    = 'pen';
+let brushColor = '#222222';
+let brushSize  = 3;
+let painting   = false;
+let startX=0, startY=0;
+let undoStack  = [];
+let snapshot   = null; // for shape preview
+
+// Reveal state
+let revealData     = null;
+let revealChains   = [];
+let revealChainIdx = 0;
+let revealStepIdx  = 0;
 
 // ── UTILS ────────────────────────────────────────────────────────────────────
-function show(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + id).classList.add('active');
-}
-function toast(msg, ms) {
-  const el = document.getElementById('toast');
-  el.textContent = msg; el.classList.add('show');
-  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms || 2400);
-}
-function avatarOf(id)  { let h=0; for(const c of id) h=(h*31+c.charCodeAt(0))&0xffff; return AVATARS[h%AVATARS.length]; }
-function bgOf(id)      { const p=['#fde68a','#c5f0e0','#d4c5f7','#f7c5d5','#fbd5b5','#c5e8f7']; let h=0; for(const c of id) h=(h*17+c.charCodeAt(0))&0xffff; return p[h%p.length]; }
-function esc(v)        { return String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
-function rndCode()     { return Math.random().toString(36).slice(2, 8).toUpperCase(); }
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active')}
+function toast(msg,ms){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),ms||2400)}
+function avatarOf(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))&0xffff;return AVATARS[h%AVATARS.length]}
+function bgOf(id){let h=0;for(const c of id)h=(h*17+c.charCodeAt(0))&0xffff;return BGSWATCH[h%BGSWATCH.length]}
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
+function rndCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
 
 // ── ABLY ─────────────────────────────────────────────────────────────────────
-function connectAbly(code, cb) {
-  roomCode = code;
-  ably = new Ably.Realtime({
-    authUrl: '/api/token',
-    authParams: { clientId: myId },
-    clientId: myId
-  });
-  ably.connection.on('connected', () => {
-    channel = ably.channels.get('mots-doux-' + code);
-    channel.subscribe('game', msg => onMsg(msg.data));
+function connectAbly(code,cb){
+  roomCode=code;
+  ably=new Ably.Realtime({authUrl:'/api/token',authParams:{clientId:myId},clientId:myId});
+  ably.connection.on('connected',()=>{
+    channel=ably.channels.get('mots-doux-'+code);
+    channel.subscribe('game',msg=>onMsg(msg.data));
     channel.presence.subscribe(onPresence);
-    channel.presence.enter({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: false }, () => {
-      channel.presence.get((err, members) => {
-        if (members) members.forEach(m => { players[m.clientId] = m.data; });
-        renderPlayers();
-        if (cb) cb();
+    channel.presence.enter({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:false},()=>{
+      channel.presence.get((err,members)=>{
+        if(members)members.forEach(m=>{players[m.clientId]=m.data});
+        renderPlayers();if(cb)cb();
       });
     });
   });
-  ably.connection.on('failed',       () => toast('❌ Connexion échouée'));
-  ably.connection.on('disconnected', () => toast('⚠️ Déconnecté'));
+  ably.connection.on('failed',()=>toast('❌ Connexion Ably échouée'));
 }
-
-function pub(type, payload) {
-  channel.publish('game', { type: type, payload: payload || {} });
-}
-
-function onPresence(msg) {
-  const id = msg.clientId;
-  if (msg.action === 'enter' || msg.action === 'update') {
-    players[id] = msg.data || {};
-  } else if (msg.action === 'leave') {
-    delete players[id];
-  }
+function pub(type,payload){channel.publish('game',{type,payload:payload||{}})}
+function onPresence(msg){
+  const id=msg.clientId;
+  if(msg.action==='enter'||msg.action==='update')players[id]=msg.data||{};
+  else if(msg.action==='leave')delete players[id];
   renderPlayers();
-  checkAllWordsReady();
 }
-
-function onMsg(data) {
-  if (!data || typeof data.type !== 'string') return;
-  const p = data.payload || {};
-  switch (data.type) {
-    case 'game_start':   onGameStart(p);   break;
-    case 'next_turn':    onNextTurn(p);    break;
-    case 'submission':   onSubmission(p);  break;
-    case 'results':      onResults(p);     break;
-    case 'reveal_step':  onRevealStep(p);  break;
-    case 'back_lobby':   onBackLobby();    break;
+function onMsg(data){
+  if(!data||typeof data.type!=='string')return;
+  const p=data.payload||{};
+  switch(data.type){
+    case 'game_start': onGameStart(p); break;
+    case 'next_turn':  onNextTurn(p);  break;
+    case 'submission': onSubmission(p);break;
+    case 'results':    onResults(p);   break;
+    case 'reveal_step':onRevealStep(p);break;
+    case 'back_lobby': onBackLobby();  break;
   }
 }
 
 // ── LOBBY ────────────────────────────────────────────────────────────────────
-function createRoom() {
-  myName = document.getElementById('inp-name').value.trim();
-  if (!myName) { toast('Entre ton pseudo !'); return; }
-  isHost = true;
-  const code = rndCode();
-  document.getElementById('disp-code').textContent = code;
-  show('lobby');
-  connectAbly(code, null);
+function createRoom(){
+  myName=document.getElementById('inp-name').value.trim();
+  if(!myName){toast('Entre ton pseudo !');return}
+  isHost=true;
+  const code=rndCode();
+  document.getElementById('disp-code').textContent=code;
+  show('lobby');connectAbly(code,null);
 }
-function joinRoom() {
-  myName = document.getElementById('inp-name').value.trim();
-  const code = document.getElementById('inp-code').value.trim().toUpperCase();
-  if (!myName) { toast('Entre ton pseudo !'); return; }
-  if (code.length < 4) { toast('Code invalide !'); return; }
-  document.getElementById('disp-code').textContent = code;
-  show('lobby');
-  connectAbly(code, null);
+function joinRoom(){
+  myName=document.getElementById('inp-name').value.trim();
+  const code=document.getElementById('inp-code').value.trim().toUpperCase();
+  if(!myName){toast('Entre ton pseudo !');return}
+  if(code.length<4){toast('Code invalide !');return}
+  document.getElementById('disp-code').textContent=code;
+  show('lobby');connectAbly(code,null);
 }
-function copyCode() {
-  navigator.clipboard.writeText(roomCode).then(() => toast('Code copié ! 📋'));
+function copyCode(){navigator.clipboard.writeText(roomCode).then(()=>toast('Code copié ! 📋'))}
+function lockWord(){
+  const w=document.getElementById('inp-word').value.trim();
+  if(!w){toast('Entre un mot !');return}
+  myWord=w;
+  document.getElementById('inp-word').disabled=true;
+  document.getElementById('btn-lock-word').disabled=true;
+  document.getElementById('word-locked-msg').style.display='block';
+  channel.presence.update({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:true});
 }
-
-// Player locks in their word
-function lockWord() {
-  const w = document.getElementById('inp-word').value.trim();
-  if (!w) { toast('Entre un mot !'); return; }
-  myWord = w;
-  document.getElementById('inp-word').disabled    = true;
-  document.getElementById('word-locked-msg').style.display = 'block';
-  document.querySelector('#word-section .btn').disabled    = true;
-  // Broadcast that this player is ready (word stored only locally — sent to host at game start)
-  channel.presence.update({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: true });
-}
-
-function renderPlayers() {
-  const ids  = Object.keys(players);
-  const list = document.getElementById('players-list');
-  list.innerHTML = ids.map(id => `
+function renderPlayers(){
+  const ids=Object.keys(players);
+  document.getElementById('players-list').innerHTML=ids.map(id=>`
     <div class="player-row">
       <div class="player-avatar" style="background:${(players[id]||{}).bg||bgOf(id)}">${(players[id]||{}).avatar||avatarOf(id)}</div>
       <span>${esc((players[id]||{}).name||'?')}</span>
-      ${(players[id]||{}).wordReady ? '<span style="margin-left:.3rem;font-size:.8rem">✅</span>' : ''}
+      ${(players[id]||{}).wordReady?'<span style="margin-left:.3rem">✅</span>':''}
       ${id===myId?'<span class="me-badge">Moi</span>':''}
     </div>`).join('');
-
-  const allReady = isHost && ids.length >= 2 && ids.every(id => (players[id]||{}).wordReady);
-  const enoughPlayers = isHost && ids.length >= 2;
-  document.getElementById('btn-start').style.display  = enoughPlayers ? 'flex' : 'none';
-  document.getElementById('btn-start').disabled       = !allReady;
-  document.getElementById('btn-start').title          = allReady ? '' : 'Attends que tout le monde valide son mot';
-  document.getElementById('lobby-hint').style.display = enoughPlayers ? 'none' : 'block';
-}
-
-function checkAllWordsReady() {
-  const ids = Object.keys(players);
-  if (ids.length < 2) return;
-  const allReady = ids.every(id => (players[id]||{}).wordReady);
-  const btn = document.getElementById('btn-start');
-  if (btn) {
-    btn.disabled = !allReady;
-    btn.textContent = allReady ? '🎮 Lancer la partie !' : '⏳ En attente des mots…';
+  const enough=isHost&&ids.length>=2;
+  const allReady=enough&&ids.every(id=>(players[id]||{}).wordReady);
+  const btn=document.getElementById('btn-start');
+  if(btn){
+    btn.style.display=enough?'flex':'none';
+    btn.disabled=!allReady;
+    btn.textContent=allReady?'🎮 Lancer la partie !':'⏳ En attente des mots…';
   }
+  document.getElementById('lobby-hint').style.display=enough?'none':'block';
 }
 
-// ── START ────────────────────────────────────────────────────────────────────
-function startGame() {
-  const ids = Object.keys(players);
-  if (ids.length < 2) { toast('Il faut au moins 2 joueurs !'); return; }
-  if (!ids.every(id => (players[id]||{}).wordReady)) {
-    toast('Attends que tout le monde valide son mot !'); return;
-  }
-  // Host collects words — each player's word was stored locally.
-  // Problem: host doesn't know other players' words yet.
-  // Solution: host broadcasts game_start without words, each player responds with their word.
-  // Simpler: use a "word_submit" message so host collects them before starting.
-  // For simplicity here: host starts game, each player sends their word as their first submission.
-  const assignments = {};
-  const chains      = {};
-  ids.forEach(id => {
-    assignments[id] = id;
-    chains[id]      = []; // will be filled when players submit their word
-  });
-  game = {
-    round: -1, // special: word collection round
-    totalRounds: ids.length,
-    playerOrder: ids,
-    assignments, chains,
-    players: JSON.parse(JSON.stringify(players))
-  };
-  pub('game_start', game);
+// ── GAME START ───────────────────────────────────────────────────────────────
+function startGame(){
+  const ids=Object.keys(players);
+  if(ids.length<2){toast('Il faut au moins 2 joueurs !');return}
+  if(!ids.every(id=>(players[id]||{}).wordReady)){toast('Attends que tout le monde valide son mot !');return}
+  const assignments={},chains={};
+  ids.forEach(id=>{assignments[id]=id;chains[id]=[]});
+  game={round:-1,totalRounds:ids.length,playerOrder:ids,assignments,chains,players:JSON.parse(JSON.stringify(players))};
+  pub('game_start',game);
 }
-
-function onGameStart(state) {
-  game = state;
-  if (state.players) Object.assign(players, state.players);
-  // Each player submits their word immediately
-  pub('submission', {
-    playerId: myId,
-    chainId:  myId,
-    type:     'word',
-    text:     myWord || '?',
-    author:   myId
-  });
-  showWait('🔤 Mot envoyé !', 'En attente que tout le monde envoie son mot…');
+function onGameStart(state){
+  game=state;
+  if(state.players)Object.assign(players,state.players);
+  pub('submission',{playerId:myId,chainId:myId,type:'word',text:myWord||'?',author:myId});
+  showWait('🔤 Mot envoyé !','En attente que tout le monde envoie son mot…');
 }
 
 // ── TURNS ────────────────────────────────────────────────────────────────────
-function doTurn() {
-  if (game.round % 2 === 0) doDraw();
-  else doGuess();
-}
-
-function doDraw() {
-  const chainId  = game.assignments[myId];
-  const chain    = game.chains[chainId];
-  const last     = chain[chain.length - 1];
-  const prompt   = last.text || '?';
-  document.getElementById('draw-prompt').textContent    = prompt;
-  document.getElementById('draw-round').textContent     = `Tour ${game.round+1}/${game.totalRounds}`;
-  clearCanvas();
+function doTurn(){if(game.round%2===0)doDraw();else doGuess()}
+function doDraw(){
+  const chain=game.chains[game.assignments[myId]];
+  const last=chain[chain.length-1];
+  document.getElementById('draw-prompt').textContent=last.text||'?';
+  document.getElementById('draw-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
+  clearCanvas();undoStack=[];
   show('draw');
-  timer(DRAW_SECS, 'tbar-d', 'tnum-d', submitDrawing);
+  timer(DRAW_SECS,'tbar-d','tnum-d',submitDrawing);
 }
-
-function doGuess() {
-  const chainId = game.assignments[myId];
-  const chain   = game.chains[chainId];
-  const last    = chain[chain.length - 1];
-  document.getElementById('guess-img').src           = last.dataUrl || '';
-  document.getElementById('guess-inp').value         = '';
-  document.getElementById('guess-round').textContent = `Tour ${game.round+1}/${game.totalRounds}`;
+function doGuess(){
+  const chain=game.chains[game.assignments[myId]];
+  const last=chain[chain.length-1];
+  document.getElementById('guess-img').src=last.dataUrl||'';
+  document.getElementById('guess-inp').value='';
+  document.getElementById('guess-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
   show('guess');
-  timer(GUESS_SECS, 'tbar-g', 'tnum-g', submitGuess);
-  setTimeout(() => document.getElementById('guess-inp').focus(), 300);
+  timer(GUESS_SECS,'tbar-g','tnum-g',submitGuess);
+  setTimeout(()=>document.getElementById('guess-inp').focus(),300);
 }
 
 // ── TIMER ────────────────────────────────────────────────────────────────────
-function timer(secs, barId, numId, onEnd) {
-  clearInterval(timerInt);
-  let left = secs;
-  const bar = document.getElementById(barId);
-  const num = document.getElementById(numId);
-  function tick() {
-    num.textContent  = left;
-    bar.style.width  = (left / secs * 100) + '%';
-    bar.style.background = left <= 10
-      ? 'linear-gradient(90deg,#f87171,#ef4444)'
-      : 'linear-gradient(90deg,var(--menthe-d),var(--lavande-d))';
-    if (left <= 0) { clearInterval(timerInt); onEnd(); return; }
-    left--;
+function timer(secs,barId,numId,onEnd){
+  clearInterval(timerInt);let left=secs;
+  const bar=document.getElementById(barId),num=document.getElementById(numId);
+  function tick(){
+    num.textContent=left;bar.style.width=(left/secs*100)+'%';
+    bar.style.background=left<=10?'linear-gradient(90deg,#f87171,#ef4444)':'linear-gradient(90deg,var(--menthe-d),var(--lavande-d))';
+    if(left<=0){clearInterval(timerInt);onEnd();return}left--;
   }
-  tick();
-  timerInt = setInterval(tick, 1000);
+  tick();timerInt=setInterval(tick,1000);
 }
 
 // ── CANVAS ───────────────────────────────────────────────────────────────────
-function initCanvas() {
-  const cv = document.getElementById('canvas');
-  cv.width = cv.offsetWidth || 560;
-  document.getElementById('palette').innerHTML = COLORS.map(c =>
-    `<div class="color-swatch${c===brushColor?' active':''}" style="background:${c}${c==='#ffffff'?';outline:1px solid #ccc':''}" onclick="setColor('${c}',this)"></div>`
+function getCV(){return document.getElementById('canvas')}
+function getCtx(){return getCV().getContext('2d')}
+
+function initCanvas(){
+  const cv=getCV();
+  cv.width=cv.offsetWidth||560;
+  // Palette
+  document.getElementById('palette').innerHTML=COLORS.map(c=>
+    `<div class="color-swatch${c===brushColor?' active':''}" style="background:${c};${c==='#ffffff'||c==='#f5ede0'?'outline:1.5px solid #ccc':''};" onclick="setColor('${c}',this)" title="${c}"></div>`
   ).join('');
-  const ctx = cv.getContext('2d');
-  function pt(e) {
-    const r = cv.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
-    return [(s.clientX-r.left)*(cv.width/r.width), (s.clientY-r.top)*(cv.height/r.height)];
+  const ctx=cv.getContext('2d');
+
+  function pt(e){
+    const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;
+    return[(s.clientX-r.left)*(cv.width/r.width),(s.clientY-r.top)*(cv.height/r.height)];
   }
-  function dn(e) { e.preventDefault(); painting=true; ctx.beginPath(); const[x,y]=pt(e); ctx.moveTo(x,y); mv(e); }
-  function mv(e) {
-    if (!painting) return; e.preventDefault();
-    const [x,y] = pt(e);
-    ctx.lineWidth   = brushSize;
-    ctx.lineCap     = 'round';
-    ctx.lineJoin    = 'round';
-    ctx.globalCompositeOperation = erasing ? 'destination-out' : 'source-over';
-    ctx.strokeStyle = brushColor;
-    ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);
+
+  cv.addEventListener('mousedown', e=>{e.preventDefault();const[x,y]=pt(e);startX=x;startY=y;painting=true;
+    if(curTool==='fill'){fillAt(x,y);return}
+    if(curTool==='pen'||curTool==='eraser'){
+      saveUndo();ctx.beginPath();ctx.moveTo(x,y);freeMove(e);
+    }
+    if(curTool==='line'||curTool==='rect'||curTool==='circle'){
+      saveUndo();snapshot=ctx.getImageData(0,0,cv.width,cv.height);
+    }
+  });
+  cv.addEventListener('mousemove',e=>{
+    if(!painting)return;e.preventDefault();
+    const[x,y]=pt(e);
+    if(curTool==='pen'||curTool==='eraser')freeMove(e);
+    else if(curTool==='line')previewLine(x,y);
+    else if(curTool==='rect')previewRect(x,y);
+    else if(curTool==='circle')previewCircle(x,y);
+  });
+  cv.addEventListener('mouseup',e=>{if(!painting)return;painting=false;const[x,y]=pt(e);finishShape(x,y);ctx.beginPath()});
+  cv.addEventListener('mouseleave',e=>{if(!painting)return;painting=false;const[x,y]=pt(e);finishShape(x,y);ctx.beginPath()});
+  cv.addEventListener('touchstart',e=>{e.preventDefault();const[x,y]=pt(e);startX=x;startY=y;painting=true;
+    if(curTool==='fill'){fillAt(x,y);return}
+    if(curTool==='pen'||curTool==='eraser'){saveUndo();ctx.beginPath();ctx.moveTo(x,y);freeMove(e)}
+    if(curTool==='line'||curTool==='rect'||curTool==='circle'){saveUndo();snapshot=ctx.getImageData(0,0,cv.width,cv.height)}
+  },{passive:false});
+  cv.addEventListener('touchmove',e=>{
+    if(!painting)return;e.preventDefault();
+    const[x,y]=pt(e);
+    if(curTool==='pen'||curTool==='eraser')freeMove(e);
+    else if(curTool==='line')previewLine(x,y);
+    else if(curTool==='rect')previewRect(x,y);
+    else if(curTool==='circle')previewCircle(x,y);
+  },{passive:false});
+  cv.addEventListener('touchend',e=>{if(!painting)return;painting=false;const t=e.changedTouches[0],r=cv.getBoundingClientRect();finishShape((t.clientX-r.left)*(cv.width/r.width),(t.clientY-r.top)*(cv.height/r.height));ctx.beginPath()});
+
+  function freeMove(e){
+    const[x,y]=pt(e),ctx=getCtx();
+    ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.lineJoin='round';
+    if(curTool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)'}
+    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor}
+    ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y);
   }
-  function up() { painting=false; ctx.beginPath(); }
-  cv.addEventListener('mousedown',  dn);
-  cv.addEventListener('mousemove',  mv);
-  cv.addEventListener('mouseup',    up);
-  cv.addEventListener('mouseleave', up);
-  cv.addEventListener('touchstart', dn, {passive:false});
-  cv.addEventListener('touchmove',  mv, {passive:false});
-  cv.addEventListener('touchend',   up);
+  function previewLine(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(x,y);ctx.stroke()}
+  function previewRect(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.beginPath();ctx.strokeRect(startX,startY,x-startX,y-startY)}
+  function previewCircle(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;const rx=Math.abs(x-startX)/2,ry=Math.abs(y-startY)/2,cx=(startX+x)/2,cy=(startY+y)/2;ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,Math.PI*2);ctx.stroke()}
+  function finishShape(x,y){if(!snapshot)return;snapshot=null;/* shape already drawn in preview */}
 }
-function clearCanvas() {
-  const cv = document.getElementById('canvas');
-  cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+
+function saveUndo(){
+  const cv=getCV();undoStack.push(cv.getContext('2d').getImageData(0,0,cv.width,cv.height));
+  if(undoStack.length>30)undoStack.shift();
+  document.getElementById('btn-undo').disabled=false;
 }
-function setColor(c, el) {
-  brushColor = c; erasing = false;
-  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+function undo(){
+  if(!undoStack.length)return;
+  const cv=getCV();cv.getContext('2d').putImageData(undoStack.pop(),0,0);
+  document.getElementById('btn-undo').disabled=undoStack.length===0;
+}
+
+function fillAt(x,y){
+  saveUndo();
+  const cv=getCV(),ctx=cv.getContext('2d');
+  const imgData=ctx.getImageData(0,0,cv.width,cv.height);
+  const data=imgData.data;
+  const ix=Math.round(x),iy=Math.round(y);
+  const idx=(iy*cv.width+ix)*4;
+  const tr=data[idx],tg=data[idx+1],tb=data[idx+2],ta=data[idx+3];
+  const fc=hexToRgb(brushColor)||{r:0,g:0,b:0};
+  if(tr===fc.r&&tg===fc.g&&tb===fc.b&&ta===255)return;
+  const stack=[[ix,iy]];
+  while(stack.length){
+    const[px,py]=stack.pop();
+    if(px<0||px>=cv.width||py<0||py>=cv.height)continue;
+    const i=(py*cv.width+px)*4;
+    if(data[i]!==tr||data[i+1]!==tg||data[i+2]!==tb||data[i+3]!==ta)continue;
+    data[i]=fc.r;data[i+1]=fc.g;data[i+2]=fc.b;data[i+3]=255;
+    stack.push([px+1,py],[px-1,py],[px,py+1],[px,py-1]);
+  }
+  ctx.putImageData(imgData,0,0);
+}
+function hexToRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
+
+function clearCanvas(){
+  saveUndo();const cv=getCV();cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+}
+function setColor(c,el){
+  brushColor=c;
+  if(curTool==='eraser')setTool('pen');
+  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('btn-eraser').classList.remove('active');
 }
-function setSize(s, el) {
-  brushSize = s;
-  document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+function setSize(s,el){
+  brushSize=s;
+  document.querySelectorAll('[id^="sz-"]').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
 }
-function toggleEraser() {
-  erasing = !erasing;
-  document.getElementById('btn-eraser').classList.toggle('active', erasing);
+function setTool(t){
+  curTool=t;
+  ['pen','eraser','fill','line','rect','circle'].forEach(id=>{
+    const btn=document.getElementById('btn-'+id);
+    if(btn)btn.classList.toggle('active',id===t);
+  });
 }
+
+// keyboard shortcut
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}});
 
 // ── SUBMIT ───────────────────────────────────────────────────────────────────
-function submitDrawing() {
+function submitDrawing(){
   clearInterval(timerInt);
-  const cv  = document.getElementById('canvas');
-  const tmp = document.createElement('canvas');
-  tmp.width = cv.width; tmp.height = cv.height;
-  const ctx = tmp.getContext('2d');
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,tmp.width,tmp.height);
-  ctx.drawImage(cv, 0, 0);
-  const dataUrl = tmp.toDataURL('image/jpeg', 0.5);
-  pub('submission', { playerId: myId, chainId: game.assignments[myId], type: 'draw', dataUrl: dataUrl, author: myId });
-  showWait('🎨 Dessin envoyé !', 'En attente des autres joueurs…');
+  const cv=getCV(),tmp=document.createElement('canvas');
+  tmp.width=cv.width;tmp.height=cv.height;
+  const ctx=tmp.getContext('2d');
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,tmp.width,tmp.height);
+  ctx.drawImage(cv,0,0);
+  pub('submission',{playerId:myId,chainId:game.assignments[myId],type:'draw',dataUrl:tmp.toDataURL('image/jpeg',.5),author:myId});
+  showWait('🎨 Dessin envoyé !','En attente des autres joueurs…');
 }
-function submitGuess() {
+function submitGuess(){
   clearInterval(timerInt);
-  const text = document.getElementById('guess-inp').value.trim() || '?';
-  pub('submission', { playerId: myId, chainId: game.assignments[myId], type: 'guess', text: text, author: myId });
-  showWait('💬 Réponse envoyée !', 'En attente des autres joueurs…');
+  const text=document.getElementById('guess-inp').value.trim()||'?';
+  pub('submission',{playerId:myId,chainId:game.assignments[myId],type:'guess',text,author:myId});
+  showWait('💬 Réponse envoyée !','En attente des autres joueurs…');
 }
-function showWait(t, s) {
-  document.getElementById('wait-title').textContent = t;
-  document.getElementById('wait-sub').textContent   = s;
-  show('waiting');
-}
+function showWait(t,s){document.getElementById('wait-title').textContent=t;document.getElementById('wait-sub').textContent=s;show('waiting')}
 
 // ── HOST COLLECTS ────────────────────────────────────────────────────────────
-function onSubmission(p) {
-  if (!isHost || !game) return;
-
-  // Word collection round (round -1)
-  if (p.type === 'word') {
-    if (!game.chains[p.chainId]) game.chains[p.chainId] = [];
-    game.chains[p.chainId] = [{ type: 'word', author: p.author, text: p.text }];
-    pending[p.playerId] = true;
-    if (Object.keys(pending).length >= game.playerOrder.length) {
-      pending = {};
-      game.round = 0; // now start real round 0 = draw
-      pub('next_turn', { round: game.round, assignments: game.assignments, chains: game.chains });
+function onSubmission(p){
+  if(!isHost||!game)return;
+  if(p.type==='word'){
+    game.chains[p.chainId]=[{type:'word',author:p.author,text:p.text}];
+    pending[p.playerId]=true;
+    if(Object.keys(pending).length>=game.playerOrder.length){
+      pending={};game.round=0;
+      pub('next_turn',{round:0,assignments:game.assignments,chains:game.chains});
     }
     return;
   }
-
-  // Normal submission
-  const entry = p.type === 'draw'
-    ? { type:'draw',  author:p.author, dataUrl:p.dataUrl }
-    : { type:'guess', author:p.author, text:p.text };
-  if (!game.chains[p.chainId]) game.chains[p.chainId] = [];
+  const entry=p.type==='draw'?{type:'draw',author:p.author,dataUrl:p.dataUrl}:{type:'guess',author:p.author,text:p.text};
+  if(!game.chains[p.chainId])game.chains[p.chainId]=[];
   game.chains[p.chainId].push(entry);
-  pending[p.playerId] = true;
-  if (Object.keys(pending).length >= game.playerOrder.length) {
-    pending = {};
-    nextRound();
-  }
+  pending[p.playerId]=true;
+  if(Object.keys(pending).length>=game.playerOrder.length){pending={};nextRound()}
 }
-
-function nextRound() {
+function nextRound(){
   game.round++;
-  if (game.round >= game.totalRounds) {
-    pub('results', { chains: game.chains, players: game.players });
-    return;
-  }
-  const ids = game.playerOrder;
-  const newA = {};
-  ids.forEach(id => {
-    const cur = game.assignments[id];
-    const ci  = ids.indexOf(cur);
-    newA[id]  = ids[(ci + 1) % ids.length];
-  });
-  game.assignments = newA;
-  pub('next_turn', { round: game.round, assignments: game.assignments, chains: game.chains });
+  if(game.round>=game.totalRounds){pub('results',{chains:game.chains,players:game.players});return}
+  const ids=game.playerOrder,newA={};
+  ids.forEach(id=>{const cur=game.assignments[id],ci=ids.indexOf(cur);newA[id]=ids[(ci+1)%ids.length]});
+  game.assignments=newA;
+  pub('next_turn',{round:game.round,assignments:game.assignments,chains:game.chains});
 }
+function onNextTurn(p){game.round=p.round;game.assignments=p.assignments;game.chains=p.chains;doTurn()}
 
-function onNextTurn(p) {
-  game.round       = p.round;
-  game.assignments = p.assignments;
-  game.chains      = p.chains;
-  doTurn();
-}
-
-// ── RESULTS — REVEAL ────────────────────────────────────────────────────────
-// All players see the results screen with hidden steps.
-// Host clicks "Révéler" to show one step at a time, synced to everyone.
-
-function onResults(p) {
+// ── RESULTS + REVEAL ────────────────────────────────────────────────────────
+function onResults(p){
   clearInterval(timerInt);
-  revealData     = p;
-  revealChains   = Object.keys(p.chains).map(sid => ({ starterId: sid, steps: p.chains[sid] }));
-  revealChainIdx = 0;
-  revealStepIdx  = 0;
-
-  // Build the results UI with all steps hidden
-  buildResultsUI(p, false);
+  revealData=p;
+  revealChains=Object.keys(p.chains).map(sid=>({sid,steps:p.chains[sid]}));
+  revealChainIdx=0;revealStepIdx=0;
+  buildResultsUI(p);
   show('results');
-
-  if (isHost) {
-    document.getElementById('reveal-controls').style.display = 'block';
-    document.getElementById('res-sub').textContent = 'Clique sur Révéler pour dévoiler étape par étape…';
-  } else {
-    document.getElementById('res-sub').textContent = "L'hôte va dévoiler les résultats…";
+  document.getElementById('res-sub').textContent=isHost?'Clique sur Révéler pour dévoiler étape par étape…':'L\'hôte va dévoiler les résultats…';
+  if(isHost){
+    document.getElementById('reveal-bar').style.display='flex';
+    document.getElementById('btn-reveal').style.display='inline-flex';
+    document.getElementById('btn-replay').style.display='none';
+    document.getElementById('btn-home').style.display='none';
   }
 }
-
-function buildResultsUI(p, allVisible) {
-  const container = document.getElementById('result-chain');
-  container.innerHTML = '';
-  const { chains, players: pl } = p;
-  revealChains.forEach((ch, gi) => {
-    const sid   = ch.starterId;
-    const chain = ch.steps;
-    const pInfo = (pl||{})[sid] || {};
-    const grp   = document.createElement('div');
-    grp.className = 'chain-group';
-    grp.id        = `chain-group-${gi}`;
-    grp.innerHTML = `<div class="chain-group-title">Chaîne de ${esc(pInfo.name||'?')}</div>`;
-    chain.forEach((step, si) => {
-      const el = buildStepEl(step, si, gi, pl, allVisible || (gi < revealChainIdx) || (gi === revealChainIdx && si < revealStepIdx));
-      grp.appendChild(el);
+function buildResultsUI(p){
+  const container=document.getElementById('result-chain');container.innerHTML='';
+  const{chains,players:pl}=p;
+  revealChains.forEach((ch,gi)=>{
+    const pInfo=(pl||{})[ch.sid]||{};
+    const grp=document.createElement('div');grp.className='chain-group';
+    grp.innerHTML=`<div class="chain-group-title">Chaîne de ${esc(pInfo.name||'?')}</div>`;
+    ch.steps.forEach((step,si)=>{
+      grp.appendChild(buildStepEl(step,gi,si,pl,false));
     });
     container.appendChild(grp);
   });
 }
-
-function buildStepEl(step, si, gi, pl, visible) {
-  const aInfo = (pl||{})[step.author] || {};
-  const el    = document.createElement('div');
-  el.className = 'chain-step';
-  el.id        = `step-${gi}-${si}`;
-  el.style.animationDelay = (gi*0.05 + si*0.08) + 's';
-  const hc = step.type==='draw' ? 'draw' : step.type==='word' ? 'word' : 'guess';
-  const tl = step.type==='draw' ? 'Dessin' : step.type==='word' ? 'Mot' : 'Devinette';
-  const al = step.type==='draw'
-    ? `${esc(aInfo.name||'?')} a dessiné`
-    : step.type==='word'
-      ? `${esc(aInfo.name||'?')} a choisi`
-      : `${esc(aInfo.name||'?')} a deviné`;
-  if (!visible) {
-    el.innerHTML = `
-      <div class="step-header ${hc}">
-        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
-        <span>${al}</span><span class="step-type">${tl}</span>
-      </div>
-      <div class="step-hidden">🔒 Pas encore révélé</div>`;
-  } else if (step.type === 'draw') {
-    el.innerHTML = `
-      <div class="step-header draw">
-        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
-        <span>${al}</span><span class="step-type">${tl}</span>
-      </div>
-      <img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
+function buildStepEl(step,gi,si,pl,visible){
+  const aInfo=(pl||{})[step.author]||{};
+  const el=document.createElement('div');el.className='chain-step';el.id=`s-${gi}-${si}`;
+  const hc=step.type==='draw'?'draw':step.type==='word'?'word':'guess';
+  const tl=step.type==='draw'?'Dessin':step.type==='word'?'Mot':'Devinette';
+  const al=step.type==='draw'?`${esc(aInfo.name||'?')} a dessiné`:step.type==='word'?`${esc(aInfo.name||'?')} a choisi`:`${esc(aInfo.name||'?')} a deviné`;
+  const header=`<div class="step-header ${hc}"><div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div><span>${al}</span><span class="step-type">${tl}</span></div>`;
+  if(!visible){
+    el.innerHTML=header+`<div class="step-hidden">🔒 Pas encore révélé</div>`;
+  } else if(step.type==='draw'){
+    el.innerHTML=header+`<img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
   } else {
-    el.innerHTML = `
-      <div class="step-header ${hc}">
-        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
-        <span>${al}</span><span class="step-type">${tl}</span>
-      </div>
-      <div class="step-text">${esc(step.text||'')}</div>`;
+    el.innerHTML=header+`<div class="step-text">${esc(step.text||'')}</div>`;
   }
   return el;
 }
 
-function revealNext() {
-  if (!revealData) return;
-  // Find next hidden step
-  while (revealChainIdx < revealChains.length) {
-    const chain = revealChains[revealChainIdx].steps;
-    if (revealStepIdx < chain.length) {
-      // Reveal this step
-      pub('reveal_step', { chainIdx: revealChainIdx, stepIdx: revealStepIdx });
-      revealStepIdx++;
-      return;
-    } else {
-      revealChainIdx++;
-      revealStepIdx = 0;
+function revealNext(){
+  if(!revealData)return;
+  // Find next step
+  while(revealChainIdx<revealChains.length){
+    if(revealStepIdx<revealChains[revealChainIdx].steps.length){
+      pub('reveal_step',{ci:revealChainIdx,si:revealStepIdx,done:false});
+      revealStepIdx++;return;
     }
+    revealChainIdx++;revealStepIdx=0;
   }
-  // All revealed
-  pub('reveal_step', { chainIdx: -1, stepIdx: -1, done: true });
+  // All done
+  pub('reveal_step',{ci:-1,si:-1,done:true});
 }
 
-function onRevealStep(p) {
-  if (p.done) {
-    // Everything revealed — show replay buttons
-    document.getElementById('reveal-controls').style.display  = 'none';
-    document.getElementById('reveal-done-btns').style.display = 'flex';
+function onRevealStep(p){
+  if(p.done){
+    document.getElementById('res-sub').textContent='Voici comment l\'histoire s\'est transformée… 🎉';
+    if(isHost){
+      document.getElementById('btn-reveal').style.display='none';
+      document.getElementById('btn-replay').style.display='inline-flex';
+      document.getElementById('btn-home').style.display='inline-flex';
+    } else {
+      document.getElementById('reveal-bar').style.display='none';
+      const db=document.getElementById('done-bar');db.style.display='flex';
+    }
     return;
   }
-  const { chainIdx, stepIdx } = p;
-  if (!revealData) return;
-  // Update local reveal cursor for non-hosts
-  revealChainIdx = chainIdx;
-  revealStepIdx  = stepIdx + 1;
-  // Re-render just that step as visible
-  const ch    = revealChains[chainIdx];
-  const step  = ch.steps[stepIdx];
-  const el    = document.getElementById(`step-${chainIdx}-${stepIdx}`);
-  const pl    = revealData.players;
-  if (el) {
-    const newEl = buildStepEl(step, stepIdx, chainIdx, pl, true);
-    newEl.style.animation = 'fadeUp .5s ease';
+  const{ci,si}=p;
+  if(!revealData)return;
+  // Sync cursor for non-hosts
+  revealChainIdx=ci;revealStepIdx=si+1;
+  const step=revealChains[ci].steps[si];
+  const pl=revealData.players;
+  const el=document.getElementById(`s-${ci}-${si}`);
+  if(el){
+    const newEl=buildStepEl(step,ci,si,pl,true);
+    newEl.classList.add('revealed');
     el.replaceWith(newEl);
-    // Scroll into view smoothly
-    document.getElementById(`step-${chainIdx}-${stepIdx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    document.getElementById(`s-${ci}-${si}`).scrollIntoView({behavior:'smooth',block:'nearest'});
   }
 }
 
-function backToLobby()  {
-  // Reset word input for next game
-  const inp = document.getElementById('inp-word');
-  if (inp) { inp.disabled = false; inp.value = ''; }
-  const msg = document.getElementById('word-locked-msg');
-  if (msg) msg.style.display = 'none';
-  const btn = document.querySelector('#word-section .btn');
-  if (btn) btn.disabled = false;
-  myWord = '';
-  // Update presence
-  if (channel) channel.presence.update({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: false });
-  pub('back_lobby', {});
-  onBackLobby();
+function backToLobby(){
+  // Reset lobby
+  const inp=document.getElementById('inp-word');if(inp){inp.disabled=false;inp.value=''}
+  const msg=document.getElementById('word-locked-msg');if(msg)msg.style.display='none';
+  const btn=document.getElementById('btn-lock-word');if(btn)btn.disabled=false;
+  myWord='';
+  if(channel)channel.presence.update({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:false});
+  pub('back_lobby',{});onBackLobby();
 }
-function onBackLobby() {
-  game=null; pending={}; clearInterval(timerInt);
-  revealData=null; revealChains=[]; revealChainIdx=0; revealStepIdx=0;
-  show('lobby'); renderPlayers();
+function onBackLobby(){
+  game=null;pending={};clearInterval(timerInt);
+  revealData=null;revealChains=[];revealChainIdx=0;revealStepIdx=0;
+  document.getElementById('reveal-bar').style.display='none';
+  document.getElementById('done-bar').style.display='none';
+  show('lobby');renderPlayers();
 }
 
 // ── RESIZE ───────────────────────────────────────────────────────────────────
-window.addEventListener('resize', () => {
-  const cv = document.getElementById('canvas');
-  const d  = cv.toDataURL();
-  cv.width = cv.offsetWidth;
-  const i  = new Image(); i.onload = () => cv.getContext('2d').drawImage(i,0,0); i.src = d;
+window.addEventListener('resize',()=>{
+  const cv=getCV(),d=cv.toDataURL();cv.width=cv.offsetWidth;
+  const i=new Image();i.onload=()=>cv.getContext('2d').drawImage(i,0,0);i.src=d;
 });
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
-window.addEventListener('load', () => {
+window.addEventListener('load',()=>{
   initCanvas();
-  document.getElementById('inp-name').addEventListener('keydown', e => { if(e.key==='Enter') createRoom(); });
-  document.getElementById('inp-code').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
-  document.getElementById('guess-inp').addEventListener('keydown',e => { if(e.key==='Enter') submitGuess(); });
-  document.getElementById('inp-word').addEventListener('keydown', e => { if(e.key==='Enter') lockWord(); });
+  document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter')createRoom()});
+  document.getElementById('inp-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
+  document.getElementById('guess-inp').addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});
+  document.getElementById('inp-word').addEventListener('keydown',e=>{if(e.key==='Enter')lockWord()});
+  document.getElementById('btn-undo').disabled=true;
 });
 </script>
 </body>
