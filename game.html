@@ -96,11 +96,53 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
 .step-type{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--texte-doux);margin-left:auto}
 .step-text{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;padding:.7rem 1rem}
 .step-img{width:100%;display:block}
+.step-hidden{background:var(--beige);border-radius:14px;height:60px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--texte-doux);font-weight:600}
+.reveal-chain-title{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;text-align:center;margin:1rem 0 .5rem;color:var(--texte-doux)}
+
+.word-input-wrap{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.5rem 0}
+.word-big-input{width:100%;height:60px;border-radius:16px;border:2.5px solid rgba(180,130,110,.25);background:var(--beige);font-family:'Nunito',sans-serif;font-size:1.4rem;font-weight:800;color:var(--texte);padding:0 1.2rem;outline:none;text-align:center;transition:border-color .15s;letter-spacing:.04em}
+.word-big-input:focus{border-color:var(--rose-d);box-shadow:0 0 0 3px rgba(232,128,158,.15)}
+.word-big-input::placeholder{font-size:1rem;font-weight:500;font-family:'Quicksand',sans-serif;letter-spacing:0}
+.word-examples{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center}
+.word-ex{background:var(--beige);border:1.5px solid rgba(180,130,110,.2);border-radius:100px;padding:.2rem .65rem;font-size:.76rem;font-weight:600;color:var(--texte-doux);cursor:pointer;transition:background .15s}
+.word-ex:hover{background:var(--rose);color:var(--texte)}
+
+/* REVEAL */
+.reveal-chain{display:flex;flex-direction:column;gap:.8rem}
+.chain-group{margin-bottom:1.5rem}
+.chain-group-title{font-size:.78rem;font-weight:700;color:var(--texte-doux);text-align:center;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.6rem}
+.chain-step{border-radius:16px;overflow:hidden;border:1.5px solid rgba(180,130,110,.12);background:var(--blanc);box-shadow:0 3px 12px var(--shadow)}
+.chain-step.hidden{opacity:0;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease}
+.chain-step.visible{opacity:1;transform:translateY(0)}
+.step-header{padding:.6rem 1rem;display:flex;align-items:center;gap:.6rem;font-size:.82rem;font-weight:700}
+.step-header.draw{background:rgba(247,197,213,.2)}
+.step-header.guess{background:rgba(212,197,247,.2)}
+.step-header.word{background:rgba(197,240,224,.2)}
+.step-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;flex-shrink:0}
+.step-type{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--texte-doux);margin-left:auto}
+.step-text{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;padding:.7rem 1rem}
+.step-img{width:100%;display:block}
+.step-hidden{background:var(--beige);border-radius:14px;height:60px;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--texte-doux);font-weight:600}
+.reveal-chain-title{font-family:'Nunito',sans-serif;font-size:1.1rem;font-weight:800;text-align:center;margin:1rem 0 .5rem;color:var(--texte-doux)}
+.reveal-controls{display:flex;gap:.6rem;justify-content:center;margin-top:1rem;flex-wrap:wrap;position:sticky;bottom:1rem;z-index:20}
+.audience-hint{text-align:center;font-size:.83rem;color:var(--texte-doux);margin-top:.5rem;font-style:italic}
+
 .toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--texte);color:var(--blanc);padding:.65rem 1.3rem;border-radius:100px;font-weight:600;font-size:.88rem;z-index:300;opacity:0;transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;white-space:nowrap;pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 .status-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.8rem;flex-wrap:wrap;gap:.4rem}
 .status-pill{background:var(--blanc);border-radius:100px;padding:.26rem .75rem;font-size:.73rem;font-weight:600;color:var(--texte-doux);box-shadow:0 2px 8px var(--shadow);border:1.5px solid rgba(180,130,110,.1)}
 @media(max-width:480px){.toolbar{gap:.3rem}.color-swatch{width:24px;height:24px}}
+
+/* WORD INPUT */
+.word-input-card{text-align:center;padding:1.5rem}
+.word-suggestions{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin:.8rem 0}
+.word-chip{background:var(--beige);border:1.5px solid rgba(180,130,110,.2);border-radius:100px;padding:.3rem .85rem;font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s}
+.word-chip:hover{background:var(--rose);border-color:var(--rose-d)}
+/* REVEAL */
+.reveal-controls{display:flex;gap:.6rem;justify-content:center;margin-bottom:1rem;flex-wrap:wrap}
+.reveal-step{opacity:0;transform:translateY(10px);transition:opacity .5s ease,transform .5s ease}
+.reveal-step.shown{opacity:1;transform:translateY(0)}
+.reveal-counter{font-family:'Nunito',sans-serif;font-size:.85rem;font-weight:700;color:var(--texte-doux);text-align:center;margin-bottom:.8rem}
 </style>
 </head>
 <body>
@@ -109,6 +151,34 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   <a href="index.html" class="nav-back">← Accueil</a>
 </nav>
 <div class="page">
+
+
+<!-- WORD CHOICE -->
+<div id="screen-word" class="screen">
+  <div class="card">
+    <span class="card-icon">💭</span>
+    <div class="card-title">Choisis ton mot</div>
+    <div class="card-sub">Les autres joueurs devront le deviner à travers tes dessins !</div>
+    <div class="word-input-wrap">
+      <input type="text" class="word-big-input" id="word-inp" placeholder="Tape un mot…" maxlength="30" />
+      <div class="word-examples" id="word-examples"></div>
+    </div>
+    <button class="btn btn-full btn-rose" style="margin-top:.5rem" onclick="confirmWord()">✅ Valider ce mot</button>
+  </div>
+</div>
+
+
+<!-- REVEAL -->
+<div id="screen-reveal" class="screen">
+  <div class="card" style="text-align:center;margin-bottom:1rem">
+    <span class="card-icon">🎬</span>
+    <div class="card-title" id="reveal-title">Révélation !</div>
+    <div class="card-sub" id="reveal-sub">L'hôte dévoile les chaînes…</div>
+  </div>
+  <div id="reveal-chain" class="reveal-chain"></div>
+  <div class="reveal-controls" id="reveal-controls"></div>
+  <div class="audience-hint" id="audience-hint"></div>
+</div>
 
 <!-- HOME -->
 <div id="screen-home" class="screen active">
@@ -137,10 +207,55 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
     <div class="room-code" id="disp-code" onclick="copyCode()"></div>
     <div class="room-hint">Partage ce code · Clique pour copier</div>
     <div class="players-list" id="players-list"></div>
+    <div id="word-section" style="margin-bottom:.9rem">
+      <div style="font-size:.72rem;font-weight:700;color:var(--texte-doux);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.45rem">🔤 Ton mot à faire deviner</div>
+      <div style="display:flex;gap:.5rem">
+        <input type="text" id="inp-word" placeholder="Entre un mot…" maxlength="30" style="margin-bottom:0;flex:1" />
+        <button class="btn btn-sm btn-rose" onclick="lockWord()">✓ Valider</button>
+      </div>
+      <div id="word-locked-msg" style="display:none;font-size:.8rem;color:var(--menthe-d);font-weight:700;margin-top:.4rem">✅ Mot validé !</div>
+    </div>
     <div id="lobby-hint" style="text-align:center;font-size:.83rem;color:var(--texte-doux);margin-bottom:.8rem">
       En attente de joueurs<span class="dots"><span></span><span></span><span></span></span>
     </div>
     <button class="btn btn-full btn-rose" id="btn-start" onclick="startGame()" style="display:none">🎮 Lancer la partie !</button>
+  </div>
+</div>
+
+<!-- WORD CHOICE -->
+<div id="screen-word" class="screen">
+  <div class="card" style="text-align:center;padding:2rem 1.5rem">
+    <span class="card-icon">✍️</span>
+    <div class="card-title">Choisis ton mot</div>
+    <div class="card-sub">Entre le mot que les autres devront deviner.<br>Sois créatif !</div>
+    <input type="text" id="word-inp" placeholder="Ton mot secret…" maxlength="30" style="font-size:1.1rem;text-align:center" />
+    <button class="btn btn-full btn-rose" id="btn-confirm-word" onclick="confirmWord()">✅ Valider mon mot</button>
+  </div>
+  <div class="card" id="word-waiting-card" style="display:none">
+    <div style="text-align:center;padding:1rem">
+      <div style="font-size:1.5rem;margin-bottom:.5rem">⏳</div>
+      <div style="font-family:'Nunito',sans-serif;font-weight:800;margin-bottom:.3rem">Mot enregistré !</div>
+      <div id="word-wait-status" style="font-size:.85rem;color:var(--texte-doux)">En attente des autres joueurs…</div>
+      <div id="word-ready-list" style="margin-top:.8rem;display:flex;flex-direction:column;gap:.4rem"></div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- WORD INPUT -->
+<div id="screen-word" class="screen">
+  <div class="card" style="text-align:center;padding:2rem 1.5rem">
+    <span class="card-icon">✍️</span>
+    <div class="card-title">Ton mot secret</div>
+    <div class="card-sub" id="word-sub">Choisis un mot que les autres devront dessiner !</div>
+  </div>
+  <div class="card">
+    <input type="text" id="inp-word" placeholder="Ton mot secret…" maxlength="30" />
+    <div id="word-hint" style="text-align:center;font-size:.82rem;color:var(--texte-doux);margin-bottom:.8rem;display:none">
+      En attente des autres joueurs<span class="dots"><span></span><span></span><span></span></span>
+    </div>
+    <button class="btn btn-full btn-rose" id="btn-word" onclick="submitWord()">✅ Valider mon mot</button>
   </div>
 </div>
 
@@ -192,6 +307,45 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   </div>
 </div>
 
+
+<!-- WORD INPUT -->
+<div id="screen-word" class="screen">
+  <div class="card word-input-card">
+    <span class="card-icon">✍️</span>
+    <div class="card-title">Choisis ton mot</div>
+    <div class="card-sub">Ce mot sera dessiné par le joueur suivant</div>
+    <input type="text" id="word-inp" placeholder="Ton mot…" maxlength="30" style="text-align:center;font-size:1.1rem" />
+    <div class="word-suggestions" id="word-sugg"></div>
+    <div id="word-timer-row" class="timer-row">
+      <span style="font-size:.8rem">⏱</span>
+      <div class="timer-bar-bg"><div class="timer-bar" id="tbar-w"></div></div>
+      <div class="timer-num" id="tnum-w">30</div>
+    </div>
+    <button class="btn btn-full btn-rose" onclick="submitWord()">✅ Valider ce mot</button>
+  </div>
+</div>
+
+<!-- REVEAL (host-controlled) -->
+<div id="screen-reveal" class="screen">
+  <div class="card" style="text-align:center;margin-bottom:1rem">
+    <span class="card-icon">🎬</span>
+    <div class="card-title" id="reveal-chain-title">Révélation !</div>
+    <div class="card-sub">L'hôte dévoile la chaîne étape par étape</div>
+  </div>
+  <div id="reveal-chain-title-2" class="chain-group-title" style="margin-bottom:.8rem"></div>
+  <div id="reveal-steps" class="result-chain"></div>
+  <div id="reveal-controls" class="reveal-controls" style="display:none">
+    <button class="btn btn-rose" id="btn-next-step" onclick="revealNextStep()">▶ Étape suivante</button>
+    <button class="btn btn-outline" id="btn-next-chain" onclick="revealNextChain()" style="display:none">⏭ Chaîne suivante →</button>
+  </div>
+  <div id="reveal-waiting" style="text-align:center;font-size:.83rem;color:var(--texte-doux);padding:.5rem">
+    <span class="dots"><span></span><span></span><span></span></span> En attente de l'hôte…
+  </div>
+  <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1rem">
+    <button class="btn btn-outline btn-sm" id="btn-end-reveal" onclick="endReveal()" style="display:none">🏠 Terminer</button>
+  </div>
+</div>
+
 <!-- WAITING -->
 <div id="screen-waiting" class="screen">
   <div class="card waiting-card">
@@ -201,15 +355,35 @@ canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
   </div>
 </div>
 
+
+<!-- REVEAL -->
+<div id="screen-reveal" class="screen">
+  <div class="card" style="text-align:center;margin-bottom:.8rem">
+    <span class="card-icon" id="rev-chain-icon">🎨</span>
+    <div class="card-title" id="rev-chain-title">Chaîne de …</div>
+    <div class="card-sub" id="rev-chain-sub">Voici comment ça s'est passé…</div>
+  </div>
+  <div id="rev-steps" class="result-chain" style="margin-bottom:1rem"></div>
+  <div style="display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap" id="rev-btns">
+    <button class="btn btn-rose" id="btn-rev-next" onclick="hostRevealNext()">Révéler ➜</button>
+  </div>
+  <div style="text-align:center;margin-top:.6rem">
+    <span id="rev-progress" style="font-size:.75rem;color:var(--texte-doux);font-weight:600"></span>
+  </div>
+</div>
+
 <!-- RESULTS -->
 <div id="screen-results" class="screen">
   <div class="card" style="text-align:center;margin-bottom:1rem">
     <span class="card-icon">🎉</span>
-    <div class="card-title">La chaîne complète !</div>
-    <div class="card-sub">Voici comment l'histoire s'est transformée…</div>
+    <div class="card-title" id="res-title">La chaîne complète !</div>
+    <div class="card-sub" id="res-sub">Voici comment l'histoire s'est transformée…</div>
   </div>
   <div id="result-chain" class="result-chain"></div>
-  <div style="display:flex;gap:.6rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap">
+  <div id="reveal-controls" style="display:none;text-align:center;margin:1rem 0">
+    <button class="btn btn-rose" id="btn-reveal-next" onclick="revealNext()">▶ Révéler l'étape suivante</button>
+  </div>
+  <div id="reveal-done-btns" style="display:none;display:flex;gap:.6rem;justify-content:center;margin-top:1.2rem;flex-wrap:wrap">
     <button class="btn btn-rose" onclick="backToLobby()">🔄 Rejouer</button>
     <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
   </div>
@@ -224,7 +398,6 @@ const DRAW_SECS  = 90;
 const GUESS_SECS = 60;
 const COLORS     = ['#4a3728','#e8809e','#9b82e0','#5bc9a0','#f09460','#d97706','#3b82f6','#ef4444','#10b981','#ffffff'];
 const AVATARS    = ['🐱','🐶','🐸','🦊','🐨','🐼','🐻','🦁','🐯','🐮','🐷','🐙'];
-const WORDS      = ['Maison','Soleil','Licorne','Pizza','Astronaute','Dragon','Robot','Sirène','Château','Baleine','Arc-en-ciel','Volcan','Fantôme','Pirate','Dinosaure','Chocolat','Vélo','Champignon','Étoile','Papillon','Requin','Fusée','Couronne','Cactus','Igloo','Trombone','Flamant','Pieuvre','Tornado','Koala'];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let myId   = Math.random().toString(36).slice(2, 8);
@@ -232,11 +405,18 @@ let myName = '';
 let roomCode = '';
 let isHost   = false;
 let ably, channel;
-let players  = {};
+let players  = {};   // { id: {name, avatar, bg, wordReady} }
+let myWord   = '';   // mot choisi par ce joueur
 let game     = null;
 let pending  = {};
 let timerInt = null;
 let brushColor = '#4a3728', brushSize = 4, erasing = false, painting = false;
+
+// reveal state (results screen)
+let revealData    = null;  // { chains, prompts, players }
+let revealChains  = [];    // array of chains to reveal (one per starter)
+let revealChainIdx = 0;    // which chain we're currently revealing
+let revealStepIdx  = 0;    // which step within that chain
 
 // ── UTILS ────────────────────────────────────────────────────────────────────
 function show(id) {
@@ -263,10 +443,9 @@ function connectAbly(code, cb) {
   });
   ably.connection.on('connected', () => {
     channel = ably.channels.get('mots-doux-' + code);
-    // IMPORTANT: subscribe with event name 'game' — must match publish
     channel.subscribe('game', msg => onMsg(msg.data));
     channel.presence.subscribe(onPresence);
-    channel.presence.enter({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId) }, () => {
+    channel.presence.enter({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: false }, () => {
       channel.presence.get((err, members) => {
         if (members) members.forEach(m => { players[m.clientId] = m.data; });
         renderPlayers();
@@ -278,7 +457,6 @@ function connectAbly(code, cb) {
   ably.connection.on('disconnected', () => toast('⚠️ Déconnecté'));
 }
 
-// Publish with explicit event name 'game' — data is a plain object {type, payload}
 function pub(type, payload) {
   channel.publish('game', { type: type, payload: payload || {} });
 }
@@ -291,17 +469,19 @@ function onPresence(msg) {
     delete players[id];
   }
   renderPlayers();
+  checkAllWordsReady();
 }
 
 function onMsg(data) {
   if (!data || typeof data.type !== 'string') return;
   const p = data.payload || {};
   switch (data.type) {
-    case 'game_start':  onGameStart(p);  break;
-    case 'next_turn':   onNextTurn(p);   break;
-    case 'submission':  onSubmission(p); break;
-    case 'results':     onResults(p);    break;
-    case 'back_lobby':  onBackLobby();   break;
+    case 'game_start':   onGameStart(p);   break;
+    case 'next_turn':    onNextTurn(p);    break;
+    case 'submission':   onSubmission(p);  break;
+    case 'results':      onResults(p);     break;
+    case 'reveal_step':  onRevealStep(p);  break;
+    case 'back_lobby':   onBackLobby();    break;
   }
 }
 
@@ -327,6 +507,19 @@ function joinRoom() {
 function copyCode() {
   navigator.clipboard.writeText(roomCode).then(() => toast('Code copié ! 📋'));
 }
+
+// Player locks in their word
+function lockWord() {
+  const w = document.getElementById('inp-word').value.trim();
+  if (!w) { toast('Entre un mot !'); return; }
+  myWord = w;
+  document.getElementById('inp-word').disabled    = true;
+  document.getElementById('word-locked-msg').style.display = 'block';
+  document.querySelector('#word-section .btn').disabled    = true;
+  // Broadcast that this player is ready (word stored only locally — sent to host at game start)
+  channel.presence.update({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: true });
+}
+
 function renderPlayers() {
   const ids  = Object.keys(players);
   const list = document.getElementById('players-list');
@@ -334,28 +527,52 @@ function renderPlayers() {
     <div class="player-row">
       <div class="player-avatar" style="background:${(players[id]||{}).bg||bgOf(id)}">${(players[id]||{}).avatar||avatarOf(id)}</div>
       <span>${esc((players[id]||{}).name||'?')}</span>
+      ${(players[id]||{}).wordReady ? '<span style="margin-left:.3rem;font-size:.8rem">✅</span>' : ''}
       ${id===myId?'<span class="me-badge">Moi</span>':''}
     </div>`).join('');
-  const ok = isHost && ids.length >= 2;
-  document.getElementById('btn-start').style.display   = ok ? 'flex' : 'none';
-  document.getElementById('lobby-hint').style.display  = ok ? 'none' : 'block';
+
+  const allReady = isHost && ids.length >= 2 && ids.every(id => (players[id]||{}).wordReady);
+  const enoughPlayers = isHost && ids.length >= 2;
+  document.getElementById('btn-start').style.display  = enoughPlayers ? 'flex' : 'none';
+  document.getElementById('btn-start').disabled       = !allReady;
+  document.getElementById('btn-start').title          = allReady ? '' : 'Attends que tout le monde valide son mot';
+  document.getElementById('lobby-hint').style.display = enoughPlayers ? 'none' : 'block';
+}
+
+function checkAllWordsReady() {
+  const ids = Object.keys(players);
+  if (ids.length < 2) return;
+  const allReady = ids.every(id => (players[id]||{}).wordReady);
+  const btn = document.getElementById('btn-start');
+  if (btn) {
+    btn.disabled = !allReady;
+    btn.textContent = allReady ? '🎮 Lancer la partie !' : '⏳ En attente des mots…';
+  }
 }
 
 // ── START ────────────────────────────────────────────────────────────────────
 function startGame() {
   const ids = Object.keys(players);
   if (ids.length < 2) { toast('Il faut au moins 2 joueurs !'); return; }
-  const prompts     = {};
+  if (!ids.every(id => (players[id]||{}).wordReady)) {
+    toast('Attends que tout le monde valide son mot !'); return;
+  }
+  // Host collects words — each player's word was stored locally.
+  // Problem: host doesn't know other players' words yet.
+  // Solution: host broadcasts game_start without words, each player responds with their word.
+  // Simpler: use a "word_submit" message so host collects them before starting.
+  // For simplicity here: host starts game, each player sends their word as their first submission.
   const assignments = {};
   const chains      = {};
   ids.forEach(id => {
-    prompts[id]     = WORDS[Math.floor(Math.random() * WORDS.length)];
-    assignments[id] = id; // round 0: everyone works on their own chain
-    chains[id]      = [{ type: 'word', author: id, text: prompts[id] }];
+    assignments[id] = id;
+    chains[id]      = []; // will be filled when players submit their word
   });
   game = {
-    round: 0, totalRounds: ids.length,
-    playerOrder: ids, prompts, assignments, chains,
+    round: -1, // special: word collection round
+    totalRounds: ids.length,
+    playerOrder: ids,
+    assignments, chains,
     players: JSON.parse(JSON.stringify(players))
   };
   pub('game_start', game);
@@ -364,7 +581,15 @@ function startGame() {
 function onGameStart(state) {
   game = state;
   if (state.players) Object.assign(players, state.players);
-  doTurn();
+  // Each player submits their word immediately
+  pub('submission', {
+    playerId: myId,
+    chainId:  myId,
+    type:     'word',
+    text:     myWord || '?',
+    author:   myId
+  });
+  showWait('🔤 Mot envoyé !', 'En attente que tout le monde envoie son mot…');
 }
 
 // ── TURNS ────────────────────────────────────────────────────────────────────
@@ -377,7 +602,7 @@ function doDraw() {
   const chainId  = game.assignments[myId];
   const chain    = game.chains[chainId];
   const last     = chain[chain.length - 1];
-  const prompt   = last.type === 'word' ? last.text : last.text; // word or last guess
+  const prompt   = last.text || '?';
   document.getElementById('draw-prompt').textContent    = prompt;
   document.getElementById('draw-round').textContent     = `Tour ${game.round+1}/${game.totalRounds}`;
   clearCanvas();
@@ -388,7 +613,7 @@ function doDraw() {
 function doGuess() {
   const chainId = game.assignments[myId];
   const chain   = game.chains[chainId];
-  const last    = chain[chain.length - 1]; // last entry should be a draw
+  const last    = chain[chain.length - 1];
   document.getElementById('guess-img').src           = last.dataUrl || '';
   document.getElementById('guess-inp').value         = '';
   document.getElementById('guess-round').textContent = `Tour ${game.round+1}/${game.totalRounds}`;
@@ -420,11 +645,10 @@ function timer(secs, barId, numId, onEnd) {
 function initCanvas() {
   const cv = document.getElementById('canvas');
   cv.width = cv.offsetWidth || 560;
-  const ctx = cv.getContext('2d');
-  // Palette
   document.getElementById('palette').innerHTML = COLORS.map(c =>
     `<div class="color-swatch${c===brushColor?' active':''}" style="background:${c}${c==='#ffffff'?';outline:1px solid #ccc':''}" onclick="setColor('${c}',this)"></div>`
   ).join('');
+  const ctx = cv.getContext('2d');
   function pt(e) {
     const r = cv.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
     return [(s.clientX-r.left)*(cv.width/r.width), (s.clientY-r.top)*(cv.height/r.height)];
@@ -497,6 +721,21 @@ function showWait(t, s) {
 // ── HOST COLLECTS ────────────────────────────────────────────────────────────
 function onSubmission(p) {
   if (!isHost || !game) return;
+
+  // Word collection round (round -1)
+  if (p.type === 'word') {
+    if (!game.chains[p.chainId]) game.chains[p.chainId] = [];
+    game.chains[p.chainId] = [{ type: 'word', author: p.author, text: p.text }];
+    pending[p.playerId] = true;
+    if (Object.keys(pending).length >= game.playerOrder.length) {
+      pending = {};
+      game.round = 0; // now start real round 0 = draw
+      pub('next_turn', { round: game.round, assignments: game.assignments, chains: game.chains });
+    }
+    return;
+  }
+
+  // Normal submission
   const entry = p.type === 'draw'
     ? { type:'draw',  author:p.author, dataUrl:p.dataUrl }
     : { type:'guess', author:p.author, text:p.text };
@@ -508,23 +747,24 @@ function onSubmission(p) {
     nextRound();
   }
 }
+
 function nextRound() {
   game.round++;
   if (game.round >= game.totalRounds) {
-    pub('results', { chains: game.chains, prompts: game.prompts, players: game.players });
+    pub('results', { chains: game.chains, players: game.players });
     return;
   }
-  // Rotate: each player moves to the next chain
   const ids = game.playerOrder;
   const newA = {};
   ids.forEach(id => {
-    const cur  = game.assignments[id];
-    const ci   = ids.indexOf(cur);
-    newA[id]   = ids[(ci + 1) % ids.length];
+    const cur = game.assignments[id];
+    const ci  = ids.indexOf(cur);
+    newA[id]  = ids[(ci + 1) % ids.length];
   });
   game.assignments = newA;
   pub('next_turn', { round: game.round, assignments: game.assignments, chains: game.chains });
 }
+
 function onNextTurn(p) {
   game.round       = p.round;
   game.assignments = p.assignments;
@@ -532,54 +772,151 @@ function onNextTurn(p) {
   doTurn();
 }
 
-// ── RESULTS ──────────────────────────────────────────────────────────────────
+// ── RESULTS — REVEAL ────────────────────────────────────────────────────────
+// All players see the results screen with hidden steps.
+// Host clicks "Révéler" to show one step at a time, synced to everyone.
+
 function onResults(p) {
   clearInterval(timerInt);
-  const { chains, prompts, players: pl } = p;
+  revealData     = p;
+  revealChains   = Object.keys(p.chains).map(sid => ({ starterId: sid, steps: p.chains[sid] }));
+  revealChainIdx = 0;
+  revealStepIdx  = 0;
+
+  // Build the results UI with all steps hidden
+  buildResultsUI(p, false);
+  show('results');
+
+  if (isHost) {
+    document.getElementById('reveal-controls').style.display = 'block';
+    document.getElementById('res-sub').textContent = 'Clique sur Révéler pour dévoiler étape par étape…';
+  } else {
+    document.getElementById('res-sub').textContent = "L'hôte va dévoiler les résultats…";
+  }
+}
+
+function buildResultsUI(p, allVisible) {
   const container = document.getElementById('result-chain');
   container.innerHTML = '';
-  Object.keys(chains).forEach((sid, gi) => {
-    const chain = chains[sid];
+  const { chains, players: pl } = p;
+  revealChains.forEach((ch, gi) => {
+    const sid   = ch.starterId;
+    const chain = ch.steps;
     const pInfo = (pl||{})[sid] || {};
     const grp   = document.createElement('div');
     grp.className = 'chain-group';
+    grp.id        = `chain-group-${gi}`;
     grp.innerHTML = `<div class="chain-group-title">Chaîne de ${esc(pInfo.name||'?')}</div>`;
     chain.forEach((step, si) => {
-      const aInfo  = (pl||{})[step.author] || {};
-      const el     = document.createElement('div');
-      el.className = 'chain-step';
-      el.style.animationDelay = (gi*0.08 + si*0.1) + 's';
-      const hc = step.type==='draw' ? 'draw' : step.type==='word' ? 'word' : 'guess';
-      const tl = step.type==='draw' ? 'Dessin' : step.type==='word' ? 'Mot' : 'Devinette';
-      const al = step.type==='draw'
-        ? `${esc(aInfo.name||'?')} a dessiné`
-        : step.type==='word'
-          ? `${esc(aInfo.name||'?')} a proposé`
-          : `${esc(aInfo.name||'?')} a deviné`;
-      if (step.type === 'draw') {
-        el.innerHTML = `
-          <div class="step-header draw">
-            <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
-            <span>${al}</span><span class="step-type">${tl}</span>
-          </div>
-          <img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
-      } else {
-        el.innerHTML = `
-          <div class="step-header ${hc}">
-            <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
-            <span>${al}</span><span class="step-type">${tl}</span>
-          </div>
-          <div class="step-text">${esc(step.text||'')}</div>`;
-      }
+      const el = buildStepEl(step, si, gi, pl, allVisible || (gi < revealChainIdx) || (gi === revealChainIdx && si < revealStepIdx));
       grp.appendChild(el);
     });
     container.appendChild(grp);
   });
-  show('results');
 }
 
-function backToLobby()  { pub('back_lobby', {}); onBackLobby(); }
-function onBackLobby()  { game=null; pending={}; clearInterval(timerInt); show('lobby'); renderPlayers(); }
+function buildStepEl(step, si, gi, pl, visible) {
+  const aInfo = (pl||{})[step.author] || {};
+  const el    = document.createElement('div');
+  el.className = 'chain-step';
+  el.id        = `step-${gi}-${si}`;
+  el.style.animationDelay = (gi*0.05 + si*0.08) + 's';
+  const hc = step.type==='draw' ? 'draw' : step.type==='word' ? 'word' : 'guess';
+  const tl = step.type==='draw' ? 'Dessin' : step.type==='word' ? 'Mot' : 'Devinette';
+  const al = step.type==='draw'
+    ? `${esc(aInfo.name||'?')} a dessiné`
+    : step.type==='word'
+      ? `${esc(aInfo.name||'?')} a choisi`
+      : `${esc(aInfo.name||'?')} a deviné`;
+  if (!visible) {
+    el.innerHTML = `
+      <div class="step-header ${hc}">
+        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
+        <span>${al}</span><span class="step-type">${tl}</span>
+      </div>
+      <div class="step-hidden">🔒 Pas encore révélé</div>`;
+  } else if (step.type === 'draw') {
+    el.innerHTML = `
+      <div class="step-header draw">
+        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
+        <span>${al}</span><span class="step-type">${tl}</span>
+      </div>
+      <img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
+  } else {
+    el.innerHTML = `
+      <div class="step-header ${hc}">
+        <div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div>
+        <span>${al}</span><span class="step-type">${tl}</span>
+      </div>
+      <div class="step-text">${esc(step.text||'')}</div>`;
+  }
+  return el;
+}
+
+function revealNext() {
+  if (!revealData) return;
+  // Find next hidden step
+  while (revealChainIdx < revealChains.length) {
+    const chain = revealChains[revealChainIdx].steps;
+    if (revealStepIdx < chain.length) {
+      // Reveal this step
+      pub('reveal_step', { chainIdx: revealChainIdx, stepIdx: revealStepIdx });
+      revealStepIdx++;
+      return;
+    } else {
+      revealChainIdx++;
+      revealStepIdx = 0;
+    }
+  }
+  // All revealed
+  pub('reveal_step', { chainIdx: -1, stepIdx: -1, done: true });
+}
+
+function onRevealStep(p) {
+  if (p.done) {
+    // Everything revealed — show replay buttons
+    document.getElementById('reveal-controls').style.display  = 'none';
+    document.getElementById('reveal-done-btns').style.display = 'flex';
+    return;
+  }
+  const { chainIdx, stepIdx } = p;
+  if (!revealData) return;
+  // Update local reveal cursor for non-hosts
+  revealChainIdx = chainIdx;
+  revealStepIdx  = stepIdx + 1;
+  // Re-render just that step as visible
+  const ch    = revealChains[chainIdx];
+  const step  = ch.steps[stepIdx];
+  const el    = document.getElementById(`step-${chainIdx}-${stepIdx}`);
+  const pl    = revealData.players;
+  if (el) {
+    const newEl = buildStepEl(step, stepIdx, chainIdx, pl, true);
+    newEl.style.animation = 'fadeUp .5s ease';
+    el.replaceWith(newEl);
+    // Scroll into view smoothly
+    document.getElementById(`step-${chainIdx}-${stepIdx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+function backToLobby()  {
+  // Reset word input for next game
+  const inp = document.getElementById('inp-word');
+  if (inp) { inp.disabled = false; inp.value = ''; }
+  const msg = document.getElementById('word-locked-msg');
+  if (msg) msg.style.display = 'none';
+  const btn = document.querySelector('#word-section .btn');
+  if (btn) btn.disabled = false;
+  myWord = '';
+  // Update presence
+  if (channel) channel.presence.update({ name: myName, avatar: avatarOf(myId), bg: bgOf(myId), wordReady: false });
+  pub('back_lobby', {});
+  onBackLobby();
+}
+function onBackLobby() {
+  game=null; pending={}; clearInterval(timerInt);
+  revealData=null; revealChains=[]; revealChainIdx=0; revealStepIdx=0;
+  show('lobby'); renderPlayers();
+}
 
 // ── RESIZE ───────────────────────────────────────────────────────────────────
 window.addEventListener('resize', () => {
@@ -595,6 +932,7 @@ window.addEventListener('load', () => {
   document.getElementById('inp-name').addEventListener('keydown', e => { if(e.key==='Enter') createRoom(); });
   document.getElementById('inp-code').addEventListener('input',   e => { e.target.value = e.target.value.toUpperCase(); });
   document.getElementById('guess-inp').addEventListener('keydown',e => { if(e.key==='Enter') submitGuess(); });
+  document.getElementById('inp-word').addEventListener('keydown', e => { if(e.key==='Enter') lockWord(); });
 });
 </script>
 </body>
