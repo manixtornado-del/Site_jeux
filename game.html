@@ -387,9 +387,11 @@ function onMsg(data){
     case 'submission': onSubmission(p);break;
     case 'results':    onResults(p);   break;
     case 'reveal_step':onRevealStep(p);break;
-    case 'back_lobby': onBackLobby();  break;
-    case 'vote_cast':   onVoteCast(p);  break;
-    case 'vote_results':onVoteResults(p);break;
+    case 'back_lobby':    onBackLobby();       break;
+    case 'vote_cast':     onVoteCast(p);       break;
+    case 'vote_results':  onVoteResults(p);    break;
+    case 'request_words': onRequestWords(p);   break;
+    case 'word_ready':    onWordReady(p);      break;
   }
 }
 
@@ -441,21 +443,56 @@ function renderPlayers(){
 }
 
 // ── GAME START ───────────────────────────────────────────────────────────────
+// Words collected by host before game start
+let collectedWords = {};
+
 function startGame(){
   const ids=Object.keys(players);
   if(ids.length<2){toast('Il faut au moins 2 joueurs !');return}
   if(!ids.every(id=>(players[id]||{}).wordReady)){toast('Attends que tout le monde valide son mot !');return}
-  const assignments={},chains={};
-  ids.forEach(id=>{assignments[id]=id;chains[id]=[]});
-  game={round:-1,totalRounds:ids.length,playerOrder:ids,assignments,chains,players:JSON.parse(JSON.stringify(players))};
-  console.log('Starting game with players:',ids);
-  pub('game_start',game);
+  collectedWords={};
+  // Ask everyone to send their word
+  pub('request_words',{playerOrder:ids,players:JSON.parse(JSON.stringify(players))});
+  showWait('🔤 Collecte des mots…','Démarrage de la partie…');
 }
+
+function onRequestWords(p){
+  // Everyone (including host) sends their word back
+  pub('word_ready',{playerId:myId,word:myWord||'?',playerOrder:p.playerOrder,players:p.players});
+}
+
+function onWordReady(p){
+  // Only host collects
+  if(!isHost)return;
+  collectedWords[p.playerId]=p.word;
+  const ids=p.playerOrder;
+  const ready=ids.filter(id=>collectedWords[id]).length;
+  console.log('words collected:',ready,'/',ids.length, collectedWords);
+  if(ready>=ids.length){
+    // Build full game state with chains already initialized
+    const assignments={},chains={};
+    ids.forEach(id=>{
+      assignments[id]=id;
+      chains[id]=[{type:'word',author:id,text:collectedWords[id]}];
+    });
+    const state={
+      round:0,
+      totalRounds:ids.length,
+      playerOrder:ids,
+      assignments,chains,
+      players:p.players
+    };
+    pub('game_start',state);
+  }
+}
+
 function onGameStart(state){
   game=state;
   if(state.players)Object.assign(players,state.players);
-  pub('submission',{playerId:myId,chainId:myId,type:'word',text:myWord||'?',author:myId});
-  showWait('🔤 Mot envoyé !','En attente que tout le monde envoie son mot…');
+  console.log('onGameStart round='+state.round+' totalRounds='+state.totalRounds+' myId='+myId);
+  console.log('assignments:',state.assignments);
+  console.log('chains:',Object.keys(state.chains).map(k=>k+':'+state.chains[k].length));
+  doTurn();
 }
 
 // ── TURNS ────────────────────────────────────────────────────────────────────
@@ -471,8 +508,14 @@ function doDraw(){
   const last=chain[chain.length-1];
   document.getElementById('draw-prompt').textContent=last.text||'?';
   document.getElementById('draw-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
-  clearCanvas();undoStack=[];
+  // Show screen FIRST so canvas is visible and has dimensions
   show('draw');
+  // Reset canvas size in case it was 0 while hidden
+  const cv=getCV();
+  if(cv.width===0)cv.width=cv.offsetWidth||560;
+  undoStack=[];
+  // Clear without saveUndo (nothing to undo at start)
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
   timer(DRAW_SECS,'tbar-d','tnum-d',submitDrawing);
 }
 function doGuess(){
@@ -567,7 +610,9 @@ function initCanvas(){
 }
 
 function saveUndo(){
-  const cv=getCV();undoStack.push(cv.getContext('2d').getImageData(0,0,cv.width,cv.height));
+  const cv=getCV();
+  if(cv.width===0||cv.height===0)return; // canvas not visible yet
+  undoStack.push(cv.getContext('2d').getImageData(0,0,cv.width,cv.height));
   if(undoStack.length>30)undoStack.shift();
   document.getElementById('btn-undo').disabled=false;
 }
@@ -601,7 +646,10 @@ function fillAt(x,y){
 function hexToRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
 
 function clearCanvas(){
-  saveUndo();const cv=getCV();cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
+  const cv=getCV();
+  if(cv.width===0||cv.height===0)return;
+  saveUndo();
+  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
 }
 function setColor(c,el){
   brushColor=c;
@@ -647,23 +695,11 @@ function showWait(t,s){document.getElementById('wait-title').textContent=t;docum
 // ── HOST COLLECTS ────────────────────────────────────────────────────────────
 function onSubmission(p){
   if(!isHost||!game)return;
-  // Only accept submissions from players in the game
   if(!game.playerOrder.includes(p.playerId))return;
-  // Deduplicate: ignore if already received from this player for this round
   if(pending[p.playerId])return;
-
-  if(p.type==='word'){
-    game.chains[p.chainId]=[{type:'word',author:p.author,text:p.text}];
-    pending[p.playerId]=true;
-    const ready=game.playerOrder.filter(id=>pending[id]).length;
-    console.log('word submissions:',ready,'/',game.playerOrder.length);
-    if(ready>=game.playerOrder.length){
-      pending={};game.round=0;
-      pub('next_turn',{round:0,assignments:game.assignments,chains:game.chains});
-    }
-    return;
-  }
-  const entry=p.type==='draw'?{type:'draw',author:p.author,dataUrl:p.dataUrl}:{type:'guess',author:p.author,text:p.text};
+  const entry=p.type==='draw'
+    ?{type:'draw',author:p.author,dataUrl:p.dataUrl}
+    :{type:'guess',author:p.author,text:p.text};
   if(!game.chains[p.chainId])game.chains[p.chainId]=[];
   game.chains[p.chainId].push(entry);
   pending[p.playerId]=true;
@@ -787,7 +823,7 @@ function backToLobby(){
   pub('back_lobby',{});onBackLobby();
 }
 function onBackLobby(){
-  game=null;pending={};clearInterval(timerInt);
+  game=null;pending={};collectedWords={};clearInterval(timerInt);
   revealData=null;revealChains=[];revealChainIdx=0;revealStepIdx=0;
   allVotes={};myVoteDraw=null;myVoteGuess=null;voteResults=null;
   document.getElementById('reveal-bar').style.display='none';
