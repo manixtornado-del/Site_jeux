@@ -361,23 +361,26 @@ function connectAbly(code,cb){
   ably.connection.on('connected',()=>{
     channel=ably.channels.get('mots-doux-'+code);
     channel.subscribe('game',msg=>onMsg(msg.data));
-    channel.presence.subscribe(onPresence);
+    // Refresh full presence list on any change
+    channel.presence.subscribe(()=>refreshPlayers());
+    // Enter then immediately get full list
     channel.presence.enter({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:false},()=>{
-      channel.presence.get((err,members)=>{
-        if(members)members.forEach(m=>{players[m.clientId]=m.data});
-        renderPlayers();if(cb)cb();
-      });
+      refreshPlayers(cb);
     });
   });
   ably.connection.on('failed',()=>toast('❌ Connexion Ably échouée'));
 }
-function pub(type,payload){channel.publish('game',{type,payload:payload||{}})}
-function onPresence(msg){
-  const id=msg.clientId;
-  if(msg.action==='enter'||msg.action==='update')players[id]=msg.data||{};
-  else if(msg.action==='leave')delete players[id];
-  renderPlayers();
+
+function refreshPlayers(cb){
+  channel.presence.get((err,members)=>{
+    players={};
+    if(members)members.forEach(m=>{players[m.clientId]=m.data||{}});
+    renderPlayers();
+    if(cb)cb();
+  });
 }
+function pub(type,payload){channel.publish('game',{type,payload:payload||{}})}
+// onPresence remplacé par refreshPlayers ci-dessus
 function onMsg(data){
   if(!data||typeof data.type!=='string')return;
   const p=data.payload||{};
