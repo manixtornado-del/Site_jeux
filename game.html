@@ -459,9 +459,15 @@ function onGameStart(state){
 }
 
 // ── TURNS ────────────────────────────────────────────────────────────────────
-function doTurn(){if(game.round%2===0)doDraw();else doGuess()}
+function doTurn(){
+  console.log('doTurn round='+game.round+' myId='+myId+' assignment='+game.assignments[myId]);
+  if(game.round%2===0)doDraw();else doGuess();
+}
 function doDraw(){
-  const chain=game.chains[game.assignments[myId]];
+  const chainId=game.assignments[myId];
+  const chain=game.chains[chainId];
+  console.log('doDraw chainId='+chainId+' chain=',chain);
+  if(!chain||chain.length===0){console.error('chain vide!');return;}
   const last=chain[chain.length-1];
   document.getElementById('draw-prompt').textContent=last.text||'?';
   document.getElementById('draw-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
@@ -470,7 +476,10 @@ function doDraw(){
   timer(DRAW_SECS,'tbar-d','tnum-d',submitDrawing);
 }
 function doGuess(){
-  const chain=game.chains[game.assignments[myId]];
+  const chainId=game.assignments[myId];
+  const chain=game.chains[chainId];
+  console.log('doGuess chainId='+chainId+' chain=',chain);
+  if(!chain||chain.length===0){console.error('chain vide pour guess!');return;}
   const last=chain[chain.length-1];
   document.getElementById('guess-img').src=last.dataUrl||'';
   document.getElementById('guess-inp').value='';
@@ -670,7 +679,11 @@ function nextRound(){
   game.assignments=newA;
   pub('next_turn',{round:game.round,assignments:game.assignments,chains:game.chains});
 }
-function onNextTurn(p){game.round=p.round;game.assignments=p.assignments;game.chains=p.chains;doTurn()}
+function onNextTurn(p){
+  game.round=p.round;game.assignments=p.assignments;game.chains=p.chains;
+  console.log('onNextTurn round='+p.round+' myAssignment='+p.assignments[myId]+' playerOrder=',game.playerOrder);
+  doTurn();
+}
 
 // ── RESULTS + REVEAL ────────────────────────────────────────────────────────
 function onResults(p){
