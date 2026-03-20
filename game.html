@@ -317,595 +317,575 @@ const DRAW_SECS  = 90;
 const GUESS_SECS = 60;
 const COLORS     = ['#222222','#e8809e','#9b82e0','#5bc9a0','#f09460','#d97706','#3b82f6','#ef4444','#10b981','#f5ede0','#ffffff'];
 const AVATARS    = ['🐱','🐶','🐸','🦊','🐨','🐼','🐻','🦁','🐯','🐮','🐷','🐙'];
-const BGSWATCH   = ['#fde68a','#c5f0e0','#d4c5f7','#f7c5d5','#fbd5b5','#c5e8f7'];
+const BGS        = ['#fde68a','#c5f0e0','#d4c5f7','#f7c5d5','#fbd5b5','#c5e8f7'];
 
 // ── STATE ────────────────────────────────────────────────────────────────────
-let myId     = Math.random().toString(36).slice(2,8);
-let myName   = '';
-let roomCode = '';
-let isHost   = false;
+let myId      = Math.random().toString(36).slice(2,8);
+let myName    = '';
+let roomCode  = '';
+let isHost    = false;
+let myWord    = '';
 let ably, channel;
-let players  = {};
-let myWord   = '';
+
+// Presence: rebuilt fresh from presence.get() on every change
+let players = {}; // { clientId: {name, avatar, bg, wordReady} }
+
+// Game state (host is source of truth; synced to all via pub)
 let game     = null;
-let pending  = {};
+let pending  = {};   // tracks who submitted this round
 let timerInt = null;
 
-// Canvas state
-let curTool    = 'pen';
-let brushColor = '#222222';
-let brushSize  = 3;
-let painting   = false;
-let startX=0, startY=0;
-let undoStack  = [];
-let snapshot   = null; // for shape preview
+// Canvas
+let curTool = 'pen', brushColor = '#222222', brushSize = 3;
+let painting = false, startX = 0, startY = 0;
+let undoStack = [], snapshot = null;
 
-// Reveal state
-let revealData     = null;
-let revealChains   = [];
-let revealChainIdx = 0;
-let revealStepIdx  = 0;
+// Reveal
+let revealData = null, revealChains = [], revealCI = 0, revealSI = 0;
+
+// Vote
+let myVoteDraw = null, myVoteGuess = null, allVotes = {}, collectedWords = {};
 
 // ── UTILS ────────────────────────────────────────────────────────────────────
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active')}
-function toast(msg,ms){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),ms||2400)}
-function avatarOf(id){let h=0;for(const c of id)h=(h*31+c.charCodeAt(0))&0xffff;return AVATARS[h%AVATARS.length]}
-function bgOf(id){let h=0;for(const c of id)h=(h*17+c.charCodeAt(0))&0xffff;return BGSWATCH[h%BGSWATCH.length]}
-function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-function rndCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+function toast(msg, ms) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms || 2400);
+}
+function av(id)  { let h=0; for(const c of id) h=(h*31+c.charCodeAt(0))&0xffff; return AVATARS[h%AVATARS.length]; }
+function bg(id)  { let h=0; for(const c of id) h=(h*17+c.charCodeAt(0))&0xffff; return BGS[h%BGS.length]; }
+function esc(v)  { return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+function rnd()   { return Math.random().toString(36).slice(2,8).toUpperCase(); }
 
 // ── ABLY ─────────────────────────────────────────────────────────────────────
-function connectAbly(code,cb){
-  roomCode=code;
-  ably=new Ably.Realtime({authUrl:'/api/token',authParams:{clientId:myId},clientId:myId});
-  ably.connection.on('connected',()=>{
-    channel=ably.channels.get('mots-doux-'+code);
-    channel.subscribe('game',msg=>onMsg(msg.data));
-    // Refresh full presence list on any change
-    channel.presence.subscribe(()=>refreshPlayers());
-    // Enter then immediately get full list
-    channel.presence.enter({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:false},()=>{
-      refreshPlayers(cb);
-    });
+function connectAbly(code) {
+  roomCode = code;
+  ably = new Ably.Realtime({ authUrl: '/api/token', authParams: { clientId: myId }, clientId: myId });
+  ably.connection.on('connected', () => {
+    channel = ably.channels.get('mots-doux-' + code);
+    channel.subscribe('game', msg => onMsg(msg.data));
+    // On any presence change, re-fetch the full list
+    channel.presence.subscribe('enter',  () => syncPresence());
+    channel.presence.subscribe('leave',  () => syncPresence());
+    channel.presence.subscribe('update', () => syncPresence());
+    // Enter with our data, then sync
+    channel.presence.enter(
+      { name: myName, avatar: av(myId), bg: bg(myId), wordReady: false },
+      () => syncPresence()
+    );
   });
-  ably.connection.on('failed',()=>toast('❌ Connexion Ably échouée'));
+  ably.connection.on('failed', () => toast('❌ Connexion Ably échouée'));
 }
 
-function refreshPlayers(cb){
-  channel.presence.get((err,members)=>{
-    players={};
-    if(members)members.forEach(m=>{players[m.clientId]=m.data||{}});
+function syncPresence() {
+  channel.presence.get((err, members) => {
+    if (err) return;
+    players = {};
+    (members || []).forEach(m => { players[m.clientId] = m.data || {}; });
     renderPlayers();
-    if(cb)cb();
   });
 }
-function pub(type,payload){channel.publish('game',{type,payload:payload||{}})}
-// onPresence remplacé par refreshPlayers ci-dessus
-function onMsg(data){
-  if(!data||typeof data.type!=='string')return;
-  const p=data.payload||{};
-  switch(data.type){
-    case 'game_start': onGameStart(p); break;
-    case 'next_turn':  onNextTurn(p);  break;
-    case 'submission': onSubmission(p);break;
-    case 'results':    onResults(p);   break;
-    case 'reveal_step':onRevealStep(p);break;
-    case 'back_lobby':    onBackLobby();       break;
-    case 'vote_cast':     onVoteCast(p);       break;
-    case 'vote_results':  onVoteResults(p);    break;
-    case 'request_words': onRequestWords(p);   break;
-    case 'word_ready':    onWordReady(p);      break;
+
+function pub(type, payload) {
+  channel.publish('game', { type, payload: payload || {} });
+}
+
+function onMsg(data) {
+  if (!data || !data.type) return;
+  const p = data.payload || {};
+  switch (data.type) {
+    case 'request_words': onRequestWords(p); break;
+    case 'word_ready':    onWordReady(p);    break;
+    case 'game_start':    onGameStart(p);    break;
+    case 'next_turn':     onNextTurn(p);     break;
+    case 'submission':    onSubmission(p);   break;
+    case 'results':       onResults(p);      break;
+    case 'reveal_step':   onRevealStep(p);   break;
+    case 'vote_cast':     onVoteCast(p);     break;
+    case 'vote_results':  onVoteResults(p);  break;
+    case 'back_lobby':    onBackLobby();     break;
   }
 }
 
 // ── LOBBY ────────────────────────────────────────────────────────────────────
-function createRoom(){
-  myName=document.getElementById('inp-name').value.trim();
-  if(!myName){toast('Entre ton pseudo !');return}
-  isHost=true;
-  const code=rndCode();
-  document.getElementById('disp-code').textContent=code;
-  show('lobby');connectAbly(code,null);
+function createRoom() {
+  myName = document.getElementById('inp-name').value.trim();
+  if (!myName) { toast('Entre ton pseudo !'); return; }
+  isHost = true;
+  const code = rnd();
+  document.getElementById('disp-code').textContent = code;
+  show('lobby');
+  connectAbly(code);
 }
-function joinRoom(){
-  myName=document.getElementById('inp-name').value.trim();
-  const code=document.getElementById('inp-code').value.trim().toUpperCase();
-  if(!myName){toast('Entre ton pseudo !');return}
-  if(code.length<4){toast('Code invalide !');return}
-  document.getElementById('disp-code').textContent=code;
-  show('lobby');connectAbly(code,null);
+
+function joinRoom() {
+  myName = document.getElementById('inp-name').value.trim();
+  const code = document.getElementById('inp-code').value.trim().toUpperCase();
+  if (!myName) { toast('Entre ton pseudo !'); return; }
+  if (code.length < 4) { toast('Code invalide !'); return; }
+  document.getElementById('disp-code').textContent = code;
+  show('lobby');
+  connectAbly(code);
 }
-function copyCode(){navigator.clipboard.writeText(roomCode).then(()=>toast('Code copié ! 📋'))}
-function lockWord(){
-  const w=document.getElementById('inp-word').value.trim();
-  if(!w){toast('Entre un mot !');return}
-  myWord=w;
-  document.getElementById('inp-word').disabled=true;
-  document.getElementById('btn-lock-word').disabled=true;
-  document.getElementById('word-locked-msg').style.display='block';
-  channel.presence.update({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:true});
+
+function copyCode() {
+  navigator.clipboard.writeText(roomCode).then(() => toast('Code copié ! 📋'));
 }
-function renderPlayers(){
-  const ids=Object.keys(players);
-  document.getElementById('players-list').innerHTML=ids.map(id=>`
+
+function lockWord() {
+  const w = document.getElementById('inp-word').value.trim();
+  if (!w) { toast('Entre un mot !'); return; }
+  myWord = w;
+  document.getElementById('inp-word').disabled = true;
+  document.getElementById('btn-lock-word').disabled = true;
+  document.getElementById('word-locked-msg').style.display = 'block';
+  // Update presence with wordReady:true so host can see
+  channel.presence.update({ name: myName, avatar: av(myId), bg: bg(myId), wordReady: true });
+}
+
+function renderPlayers() {
+  const ids = Object.keys(players);
+  document.getElementById('players-list').innerHTML = ids.map(id => `
     <div class="player-row">
-      <div class="player-avatar" style="background:${(players[id]||{}).bg||bgOf(id)}">${(players[id]||{}).avatar||avatarOf(id)}</div>
-      <span>${esc((players[id]||{}).name||'?')}</span>
-      ${(players[id]||{}).wordReady?'<span style="margin-left:.3rem">✅</span>':''}
-      ${id===myId?'<span class="me-badge">Moi</span>':''}
+      <div class="player-avatar" style="background:${players[id].bg||bg(id)}">${players[id].avatar||av(id)}</div>
+      <span>${esc(players[id].name||'?')}</span>
+      ${players[id].wordReady ? '<span style="margin-left:.3rem">✅</span>' : ''}
+      ${id === myId ? '<span class="me-badge">Moi</span>' : ''}
     </div>`).join('');
-  const enough=isHost&&ids.length>=2;
-  const allReady=enough&&ids.every(id=>(players[id]||{}).wordReady);
-  const btn=document.getElementById('btn-start');
-  if(btn){
-    btn.style.display=enough?'flex':'none';
-    btn.disabled=!allReady;
-    btn.textContent=allReady?'🎮 Lancer la partie !':'⏳ En attente des mots…';
-  }
-  document.getElementById('lobby-hint').style.display=enough?'none':'block';
+
+  if (!isHost) return;
+  const enough   = ids.length >= 2;
+  const allReady = enough && ids.every(id => players[id].wordReady);
+  const btn = document.getElementById('btn-start');
+  btn.style.display   = enough ? 'flex' : 'none';
+  btn.disabled        = !allReady;
+  btn.textContent     = allReady ? '🎮 Lancer la partie !' : '⏳ En attente des mots…';
+  document.getElementById('lobby-hint').style.display = enough ? 'none' : 'block';
 }
 
 // ── GAME START ───────────────────────────────────────────────────────────────
-// Words collected by host before game start
-let collectedWords = {};
-
-function startGame(){
-  const ids=Object.keys(players);
-  if(ids.length<2){toast('Il faut au moins 2 joueurs !');return}
-  if(!ids.every(id=>(players[id]||{}).wordReady)){toast('Attends que tout le monde valide son mot !');return}
-  collectedWords={};
-  // Ask everyone to send their word
-  pub('request_words',{playerOrder:ids,players:JSON.parse(JSON.stringify(players))});
-  showWait('🔤 Collecte des mots…','Démarrage de la partie…');
+function startGame() {
+  const ids = Object.keys(players);
+  if (ids.length < 2) { toast('Il faut au moins 2 joueurs !'); return; }
+  if (!ids.every(id => players[id].wordReady)) { toast('Tout le monde doit valider son mot !'); return; }
+  collectedWords = {};
+  // Step 1: ask everyone for their word
+  pub('request_words', { playerOrder: ids, snap: JSON.parse(JSON.stringify(players)) });
 }
 
-function onRequestWords(p){
-  // Everyone (including host) sends their word back
-  pub('word_ready',{playerId:myId,word:myWord||'?',playerOrder:p.playerOrder,players:p.players});
+function onRequestWords(p) {
+  // Everyone replies with their word
+  pub('word_ready', { playerId: myId, word: myWord || '?', playerOrder: p.playerOrder, snap: p.snap });
 }
 
-function onWordReady(p){
-  // Only host collects
-  if(!isHost)return;
-  collectedWords[p.playerId]=p.word;
-  const ids=p.playerOrder;
-  const ready=ids.filter(id=>collectedWords[id]).length;
-  console.log('words collected:',ready,'/',ids.length, collectedWords);
-  if(ready>=ids.length){
-    // Build full game state with chains already initialized
-    const assignments={},chains={};
-    ids.forEach(id=>{
-      assignments[id]=id;
-      chains[id]=[{type:'word',author:id,text:collectedWords[id]}];
-    });
-    const state={
-      round:0,
-      totalRounds:ids.length,
-      playerOrder:ids,
-      assignments,chains,
-      players:p.players
-    };
-    pub('game_start',state);
-  }
+function onWordReady(p) {
+  if (!isHost) return;
+  collectedWords[p.playerId] = p.word;
+  const ids    = p.playerOrder;
+  const got    = ids.filter(id => collectedWords[id] !== undefined).length;
+  if (got < ids.length) return;
+  // All words received — build game state and broadcast
+  const assignments = {}, chains = {};
+  ids.forEach(id => {
+    assignments[id] = id; // round 0: draw your own word
+    chains[id] = [{ type: 'word', author: id, text: collectedWords[id] }];
+  });
+  const state = {
+    round: 0,
+    totalRounds: ids.length,
+    playerOrder: ids,
+    assignments,
+    chains,
+    players: p.snap
+  };
+  pub('game_start', state);
 }
 
-function onGameStart(state){
-  game=state;
-  if(state.players)Object.assign(players,state.players);
-  console.log('onGameStart round='+state.round+' totalRounds='+state.totalRounds+' myId='+myId);
-  console.log('assignments:',state.assignments);
-  console.log('chains:',Object.keys(state.chains).map(k=>k+':'+state.chains[k].length));
+function onGameStart(state) {
+  game = state;
+  // Sync player display names/avatars from game state
+  if (state.players) Object.assign(players, state.players);
+  pending = {};
   doTurn();
 }
 
 // ── TURNS ────────────────────────────────────────────────────────────────────
-function doTurn(){
-  console.log('doTurn round='+game.round+' myId='+myId+' assignment='+game.assignments[myId]);
-  if(game.round%2===0)doDraw();else doGuess();
+function doTurn() {
+  // Even rounds (0,2,4…) = draw — Odd rounds (1,3,5…) = guess
+  if (game.round % 2 === 0) doDraw(); else doGuess();
 }
-function doDraw(){
-  const chainId=game.assignments[myId];
-  const chain=game.chains[chainId];
-  console.log('doDraw chainId='+chainId+' chain=',chain);
-  if(!chain||chain.length===0){console.error('chain vide!');return;}
-  const last=chain[chain.length-1];
-  document.getElementById('draw-prompt').textContent=last.text||'?';
-  document.getElementById('draw-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
-  // Show screen FIRST so canvas is visible and has dimensions
+
+function doDraw() {
+  const chainId = game.assignments[myId];
+  const chain   = game.chains[chainId];
+  if (!chain || !chain.length) { console.error('chain vide pour doDraw'); return; }
+  const prompt  = chain[chain.length - 1].text || '?';
+  document.getElementById('draw-prompt').textContent = prompt;
+  document.getElementById('draw-round').textContent  = `Tour ${game.round+1}/${game.totalRounds}`;
+  // Show screen FIRST — canvas needs to be visible to have dimensions
   show('draw');
-  // Reset canvas size in case it was 0 while hidden
-  const cv=getCV();
-  if(cv.width===0)cv.width=cv.offsetWidth||560;
-  undoStack=[];
-  // Clear without saveUndo (nothing to undo at start)
-  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
-  timer(DRAW_SECS,'tbar-d','tnum-d',submitDrawing);
+  // Reset canvas after it's visible
+  const cv = document.getElementById('canvas');
+  if (cv.offsetWidth > 0) cv.width = cv.offsetWidth;
+  cv.getContext('2d').clearRect(0, 0, cv.width, cv.height);
+  undoStack = [];
+  document.getElementById('btn-undo').disabled = true;
+  timer(DRAW_SECS, 'tbar-d', 'tnum-d', submitDrawing);
 }
-function doGuess(){
-  const chainId=game.assignments[myId];
-  const chain=game.chains[chainId];
-  console.log('doGuess chainId='+chainId+' chain=',chain);
-  if(!chain||chain.length===0){console.error('chain vide pour guess!');return;}
-  const last=chain[chain.length-1];
-  document.getElementById('guess-img').src=last.dataUrl||'';
-  document.getElementById('guess-inp').value='';
-  document.getElementById('guess-round').textContent=`Tour ${game.round+1}/${game.totalRounds}`;
+
+function doGuess() {
+  const chainId = game.assignments[myId];
+  const chain   = game.chains[chainId];
+  if (!chain || !chain.length) { console.error('chain vide pour doGuess'); return; }
+  const last = chain[chain.length - 1];
+  document.getElementById('guess-img').src           = last.dataUrl || '';
+  document.getElementById('guess-inp').value         = '';
+  document.getElementById('guess-round').textContent = `Tour ${game.round+1}/${game.totalRounds}`;
   show('guess');
-  timer(GUESS_SECS,'tbar-g','tnum-g',submitGuess);
-  setTimeout(()=>document.getElementById('guess-inp').focus(),300);
+  timer(GUESS_SECS, 'tbar-g', 'tnum-g', submitGuess);
+  setTimeout(() => document.getElementById('guess-inp').focus(), 300);
 }
 
 // ── TIMER ────────────────────────────────────────────────────────────────────
-function timer(secs,barId,numId,onEnd){
-  clearInterval(timerInt);let left=secs;
-  const bar=document.getElementById(barId),num=document.getElementById(numId);
-  function tick(){
-    num.textContent=left;bar.style.width=(left/secs*100)+'%';
-    bar.style.background=left<=10?'linear-gradient(90deg,#f87171,#ef4444)':'linear-gradient(90deg,var(--menthe-d),var(--lavande-d))';
-    if(left<=0){clearInterval(timerInt);onEnd();return}left--;
+function timer(secs, barId, numId, onEnd) {
+  clearInterval(timerInt);
+  let left = secs;
+  const bar = document.getElementById(barId), num = document.getElementById(numId);
+  function tick() {
+    num.textContent  = left;
+    bar.style.width  = (left / secs * 100) + '%';
+    bar.style.background = left <= 10
+      ? 'linear-gradient(90deg,#f87171,#ef4444)'
+      : 'linear-gradient(90deg,var(--menthe-d),var(--lavande-d))';
+    if (left-- <= 0) { clearInterval(timerInt); onEnd(); }
   }
-  tick();timerInt=setInterval(tick,1000);
+  tick(); timerInt = setInterval(tick, 1000);
 }
 
 // ── CANVAS ───────────────────────────────────────────────────────────────────
-function getCV(){return document.getElementById('canvas')}
-function getCtx(){return getCV().getContext('2d')}
+function cv()  { return document.getElementById('canvas'); }
+function ctx() { return cv().getContext('2d'); }
 
-function initCanvas(){
-  const cv=getCV();
-  cv.width=cv.offsetWidth||560;
-  // Palette
-  document.getElementById('palette').innerHTML=COLORS.map(c=>
-    `<div class="color-swatch${c===brushColor?' active':''}" style="background:${c};${c==='#ffffff'||c==='#f5ede0'?'outline:1.5px solid #ccc':''};" onclick="setColor('${c}',this)" title="${c}"></div>`
+function initCanvas() {
+  const canvas = cv();
+  canvas.width = canvas.offsetWidth || 560;
+  document.getElementById('palette').innerHTML = COLORS.map(col =>
+    `<div class="color-swatch${col===brushColor?' active':''}" style="background:${col};${col==='#ffffff'||col==='#f5ede0'?'outline:1.5px solid #ccc':''}" onclick="setColor('${col}',this)"></div>`
   ).join('');
-  const ctx=cv.getContext('2d');
 
-  function pt(e){
-    const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;
-    return[(s.clientX-r.left)*(cv.width/r.width),(s.clientY-r.top)*(cv.height/r.height)];
+  function pt(e) {
+    const r = canvas.getBoundingClientRect(), s = e.touches ? e.touches[0] : e;
+    return [(s.clientX-r.left)*(canvas.width/r.width), (s.clientY-r.top)*(canvas.height/r.height)];
   }
-
-  cv.addEventListener('mousedown', e=>{e.preventDefault();const[x,y]=pt(e);startX=x;startY=y;painting=true;
-    if(curTool==='fill'){fillAt(x,y);return}
-    if(curTool==='pen'||curTool==='eraser'){
-      saveUndo();ctx.beginPath();ctx.moveTo(x,y);freeMove(e);
+  function down(e) {
+    e.preventDefault(); painting = true;
+    const [x,y] = pt(e); startX = x; startY = y;
+    if (curTool==='fill') { fillAt(x,y); painting=false; return; }
+    if (curTool==='pen'||curTool==='eraser') {
+      saveUndo(); ctx().beginPath(); ctx().moveTo(x,y); applyStroke(e);
+    } else {
+      saveUndo(); snapshot = ctx().getImageData(0,0,canvas.width,canvas.height);
     }
-    if(curTool==='line'||curTool==='rect'||curTool==='circle'){
-      saveUndo();snapshot=ctx.getImageData(0,0,cv.width,cv.height);
+  }
+  function move(e) {
+    if (!painting) return; e.preventDefault();
+    const [x,y] = pt(e);
+    if (curTool==='pen'||curTool==='eraser') applyStroke(e);
+    else previewShape(x,y);
+  }
+  function up(e) {
+    if (!painting) return; painting = false; snapshot = null; ctx().beginPath();
+  }
+  function applyStroke(e) {
+    const [x,y] = pt(e), c = ctx();
+    c.lineWidth = brushSize; c.lineCap = 'round'; c.lineJoin = 'round';
+    if (curTool==='eraser') { c.globalCompositeOperation='destination-out'; c.strokeStyle='rgba(0,0,0,1)'; }
+    else { c.globalCompositeOperation='source-over'; c.strokeStyle=brushColor; }
+    c.lineTo(x,y); c.stroke(); c.beginPath(); c.moveTo(x,y);
+  }
+  function previewShape(x,y) {
+    if (!snapshot) return;
+    const c = ctx();
+    c.putImageData(snapshot,0,0);
+    c.globalCompositeOperation='source-over'; c.strokeStyle=brushColor; c.lineWidth=brushSize; c.lineCap='round';
+    c.beginPath();
+    if (curTool==='line') { c.moveTo(startX,startY); c.lineTo(x,y); }
+    else if (curTool==='rect') { c.rect(startX,startY,x-startX,y-startY); }
+    else if (curTool==='circle') {
+      const rx=Math.abs(x-startX)/2, ry=Math.abs(y-startY)/2;
+      c.ellipse((startX+x)/2,(startY+y)/2,rx||1,ry||1,0,0,Math.PI*2);
     }
-  });
-  cv.addEventListener('mousemove',e=>{
-    if(!painting)return;e.preventDefault();
-    const[x,y]=pt(e);
-    if(curTool==='pen'||curTool==='eraser')freeMove(e);
-    else if(curTool==='line')previewLine(x,y);
-    else if(curTool==='rect')previewRect(x,y);
-    else if(curTool==='circle')previewCircle(x,y);
-  });
-  cv.addEventListener('mouseup',e=>{if(!painting)return;painting=false;const[x,y]=pt(e);finishShape(x,y);ctx.beginPath()});
-  cv.addEventListener('mouseleave',e=>{if(!painting)return;painting=false;const[x,y]=pt(e);finishShape(x,y);ctx.beginPath()});
-  cv.addEventListener('touchstart',e=>{e.preventDefault();const[x,y]=pt(e);startX=x;startY=y;painting=true;
-    if(curTool==='fill'){fillAt(x,y);return}
-    if(curTool==='pen'||curTool==='eraser'){saveUndo();ctx.beginPath();ctx.moveTo(x,y);freeMove(e)}
-    if(curTool==='line'||curTool==='rect'||curTool==='circle'){saveUndo();snapshot=ctx.getImageData(0,0,cv.width,cv.height)}
-  },{passive:false});
-  cv.addEventListener('touchmove',e=>{
-    if(!painting)return;e.preventDefault();
-    const[x,y]=pt(e);
-    if(curTool==='pen'||curTool==='eraser')freeMove(e);
-    else if(curTool==='line')previewLine(x,y);
-    else if(curTool==='rect')previewRect(x,y);
-    else if(curTool==='circle')previewCircle(x,y);
-  },{passive:false});
-  cv.addEventListener('touchend',e=>{if(!painting)return;painting=false;const t=e.changedTouches[0],r=cv.getBoundingClientRect();finishShape((t.clientX-r.left)*(cv.width/r.width),(t.clientY-r.top)*(cv.height/r.height));ctx.beginPath()});
-
-  function freeMove(e){
-    const[x,y]=pt(e),ctx=getCtx();
-    ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.lineJoin='round';
-    if(curTool==='eraser'){ctx.globalCompositeOperation='destination-out';ctx.strokeStyle='rgba(0,0,0,1)'}
-    else{ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor}
-    ctx.lineTo(x,y);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y);
+    c.stroke();
   }
-  function previewLine(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(startX,startY);ctx.lineTo(x,y);ctx.stroke()}
-  function previewRect(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;ctx.beginPath();ctx.strokeRect(startX,startY,x-startX,y-startY)}
-  function previewCircle(x,y){const cv=getCV(),ctx=cv.getContext('2d');ctx.putImageData(snapshot,0,0);ctx.globalCompositeOperation='source-over';ctx.strokeStyle=brushColor;ctx.lineWidth=brushSize;const rx=Math.abs(x-startX)/2,ry=Math.abs(y-startY)/2,cx=(startX+x)/2,cy=(startY+y)/2;ctx.beginPath();ctx.ellipse(cx,cy,rx||1,ry||1,0,0,Math.PI*2);ctx.stroke()}
-  function finishShape(x,y){if(!snapshot)return;snapshot=null;/* shape already drawn in preview */}
+  canvas.addEventListener('mousedown',  down);
+  canvas.addEventListener('mousemove',  move);
+  canvas.addEventListener('mouseup',    up);
+  canvas.addEventListener('mouseleave', up);
+  canvas.addEventListener('touchstart', down, {passive:false});
+  canvas.addEventListener('touchmove',  move, {passive:false});
+  canvas.addEventListener('touchend',   up);
 }
 
-function saveUndo(){
-  const cv=getCV();
-  if(cv.width===0||cv.height===0)return; // canvas not visible yet
-  undoStack.push(cv.getContext('2d').getImageData(0,0,cv.width,cv.height));
-  if(undoStack.length>30)undoStack.shift();
-  document.getElementById('btn-undo').disabled=false;
+function saveUndo() {
+  const c = cv(); if (!c.width||!c.height) return;
+  undoStack.push(c.getContext('2d').getImageData(0,0,c.width,c.height));
+  if (undoStack.length > 30) undoStack.shift();
+  document.getElementById('btn-undo').disabled = false;
 }
-function undo(){
-  if(!undoStack.length)return;
-  const cv=getCV();cv.getContext('2d').putImageData(undoStack.pop(),0,0);
-  document.getElementById('btn-undo').disabled=undoStack.length===0;
+function undo() {
+  if (!undoStack.length) return;
+  const c = cv(); c.getContext('2d').putImageData(undoStack.pop(),0,0);
+  document.getElementById('btn-undo').disabled = undoStack.length === 0;
 }
-
-function fillAt(x,y){
-  saveUndo();
-  const cv=getCV(),ctx=cv.getContext('2d');
-  const imgData=ctx.getImageData(0,0,cv.width,cv.height);
-  const data=imgData.data;
-  const ix=Math.round(x),iy=Math.round(y);
-  const idx=(iy*cv.width+ix)*4;
-  const tr=data[idx],tg=data[idx+1],tb=data[idx+2],ta=data[idx+3];
-  const fc=hexToRgb(brushColor)||{r:0,g:0,b:0};
-  if(tr===fc.r&&tg===fc.g&&tb===fc.b&&ta===255)return;
-  const stack=[[ix,iy]];
-  while(stack.length){
-    const[px,py]=stack.pop();
-    if(px<0||px>=cv.width||py<0||py>=cv.height)continue;
-    const i=(py*cv.width+px)*4;
-    if(data[i]!==tr||data[i+1]!==tg||data[i+2]!==tb||data[i+3]!==ta)continue;
-    data[i]=fc.r;data[i+1]=fc.g;data[i+2]=fc.b;data[i+3]=255;
-    stack.push([px+1,py],[px-1,py],[px,py+1],[px,py-1]);
-  }
-  ctx.putImageData(imgData,0,0);
+function clearCanvas() {
+  const c = cv(); if (!c.width||!c.height) return;
+  saveUndo(); c.getContext('2d').clearRect(0,0,c.width,c.height);
 }
-function hexToRgb(hex){const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null}
-
-function clearCanvas(){
-  const cv=getCV();
-  if(cv.width===0||cv.height===0)return;
-  saveUndo();
-  cv.getContext('2d').clearRect(0,0,cv.width,cv.height);
-}
-function setColor(c,el){
-  brushColor=c;
-  if(curTool==='eraser')setTool('pen');
-  document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active'));
+function setColor(col, el) {
+  brushColor = col;
+  if (curTool==='eraser') setTool('pen');
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
 }
-function setSize(s,el){
-  brushSize=s;
-  document.querySelectorAll('[id^="sz-"]').forEach(b=>b.classList.remove('active'));
+function setSize(s, el) {
+  brushSize = s;
+  document.querySelectorAll('[id^="sz-"]').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
 }
-function setTool(t){
-  curTool=t;
-  ['pen','eraser','fill','line','rect','circle'].forEach(id=>{
-    const btn=document.getElementById('btn-'+id);
-    if(btn)btn.classList.toggle('active',id===t);
+function setTool(t) {
+  curTool = t;
+  ['pen','eraser','fill','line','rect','circle'].forEach(id => {
+    const b = document.getElementById('btn-'+id);
+    if (b) b.classList.toggle('active', id===t);
   });
 }
-
-// keyboard shortcut
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo()}});
+function fillAt(x, y) {
+  saveUndo();
+  const canvas = cv(), c = canvas.getContext('2d');
+  const d = c.getImageData(0,0,canvas.width,canvas.height).data;
+  const ix = Math.round(x), iy = Math.round(y), W = canvas.width;
+  const i0 = (iy*W+ix)*4;
+  const tr=d[i0], tg=d[i0+1], tb=d[i0+2], ta=d[i0+3];
+  const fc = hexToRgb(brushColor) || {r:0,g:0,b:0};
+  if (tr===fc.r&&tg===fc.g&&tb===fc.b&&ta===255) return;
+  const img = c.getImageData(0,0,canvas.width,canvas.height);
+  const px = img.data, stack = [[ix,iy]];
+  while (stack.length) {
+    const [px2,py] = stack.pop();
+    if (px2<0||px2>=W||py<0||py>=canvas.height) continue;
+    const i = (py*W+px2)*4;
+    if (px[i]!==tr||px[i+1]!==tg||px[i+2]!==tb||px[i+3]!==ta) continue;
+    px[i]=fc.r; px[i+1]=fc.g; px[i+2]=fc.b; px[i+3]=255;
+    stack.push([px2+1,py],[px2-1,py],[px2,py+1],[px2,py-1]);
+  }
+  c.putImageData(img,0,0);
+}
+function hexToRgb(h) {
+  const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h);
+  return r?{r:parseInt(r[1],16),g:parseInt(r[2],16),b:parseInt(r[3],16)}:null;
+}
+document.addEventListener('keydown', e => { if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();undo();} });
+window.addEventListener('resize', () => {
+  const c=cv(), d=c.toDataURL(); c.width=c.offsetWidth;
+  const i=new Image(); i.onload=()=>cv().getContext('2d').drawImage(i,0,0); i.src=d;
+});
 
 // ── SUBMIT ───────────────────────────────────────────────────────────────────
-function submitDrawing(){
+function submitDrawing() {
   clearInterval(timerInt);
-  const cv=getCV(),tmp=document.createElement('canvas');
-  tmp.width=cv.width;tmp.height=cv.height;
-  const ctx=tmp.getContext('2d');
-  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,tmp.width,tmp.height);
-  ctx.drawImage(cv,0,0);
-  pub('submission',{playerId:myId,chainId:game.assignments[myId],type:'draw',dataUrl:tmp.toDataURL('image/jpeg',.5),author:myId});
-  showWait('🎨 Dessin envoyé !','En attente des autres joueurs…');
+  const canvas = cv();
+  const tmp = document.createElement('canvas');
+  tmp.width=canvas.width; tmp.height=canvas.height;
+  const c=tmp.getContext('2d');
+  c.fillStyle='#ffffff'; c.fillRect(0,0,tmp.width,tmp.height);
+  c.drawImage(canvas,0,0);
+  pub('submission',{ playerId:myId, chainId:game.assignments[myId], type:'draw', dataUrl:tmp.toDataURL('image/jpeg',.5), author:myId });
+  wait('🎨 Dessin envoyé !','En attente des autres joueurs…');
 }
-function submitGuess(){
+function submitGuess() {
   clearInterval(timerInt);
-  const text=document.getElementById('guess-inp').value.trim()||'?';
-  pub('submission',{playerId:myId,chainId:game.assignments[myId],type:'guess',text,author:myId});
-  showWait('💬 Réponse envoyée !','En attente des autres joueurs…');
+  const text = document.getElementById('guess-inp').value.trim() || '?';
+  pub('submission',{ playerId:myId, chainId:game.assignments[myId], type:'guess', text, author:myId });
+  wait('💬 Réponse envoyée !','En attente des autres joueurs…');
 }
-function showWait(t,s){document.getElementById('wait-title').textContent=t;document.getElementById('wait-sub').textContent=s;show('waiting')}
+function wait(t,s) {
+  document.getElementById('wait-title').textContent = t;
+  document.getElementById('wait-sub').textContent   = s;
+  show('waiting');
+}
 
-// ── HOST COLLECTS ────────────────────────────────────────────────────────────
-function onSubmission(p){
-  if(!isHost||!game)return;
-  if(!game.playerOrder.includes(p.playerId))return;
-  if(pending[p.playerId])return;
-  const entry=p.type==='draw'
-    ?{type:'draw',author:p.author,dataUrl:p.dataUrl}
-    :{type:'guess',author:p.author,text:p.text};
-  if(!game.chains[p.chainId])game.chains[p.chainId]=[];
+// ── HOST: COLLECT ────────────────────────────────────────────────────────────
+function onSubmission(p) {
+  if (!isHost || !game) return;
+  if (!game.playerOrder.includes(p.playerId)) return;
+  if (pending[p.playerId]) return; // deduplicate
+  const entry = p.type==='draw'
+    ? { type:'draw',  author:p.author, dataUrl:p.dataUrl }
+    : { type:'guess', author:p.author, text:p.text };
   game.chains[p.chainId].push(entry);
-  pending[p.playerId]=true;
-  const ready=game.playerOrder.filter(id=>pending[id]).length;
-  console.log('round',game.round,'submissions:',ready,'/',game.playerOrder.length);
-  if(ready>=game.playerOrder.length){pending={};nextRound()}
+  pending[p.playerId] = true;
+  const got = game.playerOrder.filter(id => pending[id]).length;
+  if (got >= game.playerOrder.length) {
+    pending = {};
+    advanceRound();
+  }
 }
-function nextRound(){
+
+function advanceRound() {
   game.round++;
-  if(game.round>=game.totalRounds){pub('results',{chains:game.chains,players:game.players});return}
-  const ids=game.playerOrder,newA={};
-  ids.forEach(id=>{const cur=game.assignments[id],ci=ids.indexOf(cur);newA[id]=ids[(ci+1)%ids.length]});
-  game.assignments=newA;
-  pub('next_turn',{round:game.round,assignments:game.assignments,chains:game.chains});
+  if (game.round >= game.totalRounds) {
+    pub('results', { chains:game.chains, players:game.players });
+    return;
+  }
+  // Rotate assignments: each player moves to next chain
+  const ids  = game.playerOrder;
+  const newA = {};
+  ids.forEach(id => {
+    const cur = game.assignments[id];
+    const ci  = ids.indexOf(cur);
+    newA[id]  = ids[(ci+1) % ids.length];
+  });
+  game.assignments = newA;
+  pub('next_turn', { round:game.round, assignments:game.assignments, chains:game.chains });
 }
-function onNextTurn(p){
-  game.round=p.round;game.assignments=p.assignments;game.chains=p.chains;
-  console.log('onNextTurn round='+p.round+' myAssignment='+p.assignments[myId]+' playerOrder=',game.playerOrder);
+
+function onNextTurn(p) {
+  game.round       = p.round;
+  game.assignments = p.assignments;
+  game.chains      = p.chains;
+  pending          = {};
   doTurn();
 }
 
-// ── RESULTS + REVEAL ────────────────────────────────────────────────────────
-function onResults(p){
+// ── RESULTS + REVEAL ─────────────────────────────────────────────────────────
+function onResults(p) {
   clearInterval(timerInt);
-  revealData=p;
-  revealChains=Object.keys(p.chains).map(sid=>({sid,steps:p.chains[sid]}));
-  revealChainIdx=0;revealStepIdx=0;
+  revealData   = p;
+  revealChains = Object.keys(p.chains).map(sid => ({ sid, steps: p.chains[sid] }));
+  revealCI = 0; revealSI = 0;
   buildResultsUI(p);
   show('share');
-  document.getElementById('res-sub').textContent=isHost?'Clique sur Révéler pour dévoiler étape par étape…':'L\'hôte va dévoiler les résultats…';
-  if(isHost){
-    document.getElementById('reveal-bar').style.display='flex';
-    document.getElementById('btn-reveal').style.display='inline-flex';
-    document.getElementById('btn-replay').style.display='none';
-    document.getElementById('btn-home').style.display='none';
+  document.getElementById('res-sub').textContent = isHost
+    ? 'Clique sur Révéler pour dévoiler étape par étape…'
+    : "L'hôte va dévoiler les résultats…";
+  if (isHost) {
+    const bar = document.getElementById('reveal-bar');
+    bar.style.display = 'flex';
+    document.getElementById('btn-reveal').style.display     = 'inline-flex';
+    document.getElementById('btn-share-img').style.display  = 'none';
+    document.getElementById('btn-replay').style.display     = 'none';
+    document.getElementById('btn-home').style.display       = 'none';
   }
 }
-function buildResultsUI(p){
-  const container=document.getElementById('result-chain');container.innerHTML='';
-  const{chains,players:pl}=p;
-  revealChains.forEach((ch,gi)=>{
-    const pInfo=(pl||{})[ch.sid]||{};
-    const grp=document.createElement('div');grp.className='chain-group';
-    grp.innerHTML=`<div class="chain-group-title">Chaîne de ${esc(pInfo.name||'?')}</div>`;
-    ch.steps.forEach((step,si)=>{
-      grp.appendChild(buildStepEl(step,gi,si,pl,false));
-    });
+
+function buildResultsUI(p) {
+  const container = document.getElementById('result-chain');
+  container.innerHTML = '';
+  revealChains.forEach((ch, gi) => {
+    const pInfo = (p.players||{})[ch.sid] || {};
+    const grp   = document.createElement('div'); grp.className='chain-group';
+    grp.innerHTML = `<div class="chain-group-title">Chaîne de ${esc(pInfo.name||'?')}</div>`;
+    ch.steps.forEach((step, si) => grp.appendChild(buildStep(step,gi,si,p.players,false)));
     container.appendChild(grp);
   });
 }
-function buildStepEl(step,gi,si,pl,visible){
-  const aInfo=(pl||{})[step.author]||{};
-  const el=document.createElement('div');el.className='chain-step';el.id=`s-${gi}-${si}`;
-  const hc=step.type==='draw'?'draw':step.type==='word'?'word':'guess';
-  const tl=step.type==='draw'?'Dessin':step.type==='word'?'Mot':'Devinette';
-  const al=step.type==='draw'?`${esc(aInfo.name||'?')} a dessiné`:step.type==='word'?`${esc(aInfo.name||'?')} a choisi`:`${esc(aInfo.name||'?')} a deviné`;
-  const header=`<div class="step-header ${hc}"><div class="step-avatar" style="background:${bgOf(step.author)}">${aInfo.avatar||avatarOf(step.author)}</div><span>${al}</span><span class="step-type">${tl}</span></div>`;
-  if(!visible){
-    el.innerHTML=header+`<div class="step-hidden">🔒 Pas encore révélé</div>`;
-  } else if(step.type==='draw'){
-    el.innerHTML=header+`<img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
+
+function buildStep(step, gi, si, pl, visible) {
+  const aInfo = (pl||{})[step.author] || {};
+  const el = document.createElement('div');
+  el.className = 'chain-step'; el.id = `s-${gi}-${si}`;
+  const hc = step.type==='draw'?'draw':step.type==='word'?'word':'guess';
+  const tl = step.type==='draw'?'Dessin':step.type==='word'?'Mot':'Devinette';
+  const al = step.type==='draw'
+    ? `${esc(aInfo.name||'?')} a dessiné`
+    : step.type==='word' ? `${esc(aInfo.name||'?')} a choisi`
+    : `${esc(aInfo.name||'?')} a deviné`;
+  const hdr = `<div class="step-header ${hc}"><div class="step-avatar" style="background:${bg(step.author)}">${aInfo.avatar||av(step.author)}</div><span>${al}</span><span class="step-type">${tl}</span></div>`;
+  if (!visible) {
+    el.innerHTML = hdr + `<div class="step-hidden">🔒 Pas encore révélé</div>`;
+  } else if (step.type==='draw') {
+    el.innerHTML = hdr + `<img class="step-img" src="${step.dataUrl||''}" alt="dessin">`;
   } else {
-    el.innerHTML=header+`<div class="step-text">${esc(step.text||'')}</div>`;
+    el.innerHTML = hdr + `<div class="step-text">${esc(step.text||'')}</div>`;
   }
   return el;
 }
 
-function revealNext(){
-  if(!revealData)return;
-  // Find next step
-  while(revealChainIdx<revealChains.length){
-    if(revealStepIdx<revealChains[revealChainIdx].steps.length){
-      pub('reveal_step',{ci:revealChainIdx,si:revealStepIdx,done:false});
-      revealStepIdx++;return;
+function revealNext() {
+  if (!revealData) return;
+  while (revealCI < revealChains.length) {
+    if (revealSI < revealChains[revealCI].steps.length) {
+      pub('reveal_step', { ci:revealCI, si:revealSI, done:false });
+      revealSI++; return;
     }
-    revealChainIdx++;revealStepIdx=0;
+    revealCI++; revealSI = 0;
   }
-  // All done
-  pub('reveal_step',{ci:-1,si:-1,done:true});
+  pub('reveal_step', { done:true });
 }
 
-function onRevealStep(p){
-  if(p.done){
-    document.getElementById('res-sub').textContent='Voici comment l\'histoire s\'est transformée… 🎉';
-    // Show share button, then start vote phase
-    if(isHost){
-      document.getElementById('btn-reveal').style.display='none';
-      document.getElementById('btn-share-img').style.display='inline-flex';
-      document.getElementById('btn-replay').style.display='inline-flex';
-      document.getElementById('btn-home').style.display='inline-flex';
+function onRevealStep(p) {
+  if (p.done) {
+    document.getElementById('res-sub').textContent = 'Fin de la révélation ! 🎉';
+    if (isHost) {
+      document.getElementById('btn-reveal').style.display    = 'none';
+      document.getElementById('btn-share-img').style.display = 'inline-flex';
+      document.getElementById('btn-replay').style.display    = 'inline-flex';
+      document.getElementById('btn-home').style.display      = 'inline-flex';
     } else {
-      document.getElementById('reveal-bar').style.display='none';
-      const db=document.getElementById('done-bar');db.style.display='flex';
+      document.getElementById('reveal-bar').style.display = 'none';
+      document.getElementById('done-bar').style.display   = 'flex';
     }
-    // Trigger vote after short delay
-    setTimeout(() => startVotePhase(), 2000);
+    setTimeout(() => startVote(), 1500);
     return;
   }
-  const{ci,si}=p;
-  if(!revealData)return;
-  // Sync cursor for non-hosts
-  revealChainIdx=ci;revealStepIdx=si+1;
-  const step=revealChains[ci].steps[si];
-  const pl=revealData.players;
-  const el=document.getElementById(`s-${ci}-${si}`);
-  if(el){
-    const newEl=buildStepEl(step,ci,si,pl,true);
+  revealCI = p.ci; revealSI = p.si + 1;
+  if (!revealData) return;
+  const step  = revealChains[p.ci].steps[p.si];
+  const el    = document.getElementById(`s-${p.ci}-${p.si}`);
+  if (el) {
+    const newEl = buildStep(step, p.ci, p.si, revealData.players, true);
     newEl.classList.add('revealed');
     el.replaceWith(newEl);
-    document.getElementById(`s-${ci}-${si}`).scrollIntoView({behavior:'smooth',block:'nearest'});
+    document.getElementById(`s-${p.ci}-${p.si}`).scrollIntoView({behavior:'smooth',block:'nearest'});
   }
 }
 
-function backToLobby(){
-  // Reset lobby
-  const inp=document.getElementById('inp-word');if(inp){inp.disabled=false;inp.value=''}
-  const msg=document.getElementById('word-locked-msg');if(msg)msg.style.display='none';
-  const btn=document.getElementById('btn-lock-word');if(btn)btn.disabled=false;
-  myWord='';
-  if(channel)channel.presence.update({name:myName,avatar:avatarOf(myId),bg:bgOf(myId),wordReady:false});
-  pub('back_lobby',{});onBackLobby();
-}
-function onBackLobby(){
-  game=null;pending={};collectedWords={};clearInterval(timerInt);
-  revealData=null;revealChains=[];revealChainIdx=0;revealStepIdx=0;
-  allVotes={};myVoteDraw=null;myVoteGuess=null;voteResults=null;
-  document.getElementById('reveal-bar').style.display='none';
-  document.getElementById('done-bar').style.display='none';
-  show('lobby');renderPlayers();
-}
-
-// ── RESIZE ───────────────────────────────────────────────────────────────────
-window.addEventListener('resize',()=>{
-  const cv=getCV(),d=cv.toDataURL();cv.width=cv.offsetWidth;
-  const i=new Image();i.onload=()=>cv.getContext('2d').drawImage(i,0,0);i.src=d;
-});
-
-// ── INIT ─────────────────────────────────────────────────────────────────────
-window.addEventListener('load',()=>{
-  initCanvas();
-  document.getElementById('inp-name').addEventListener('keydown',e=>{if(e.key==='Enter')createRoom()});
-  document.getElementById('inp-code').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase()});
-  document.getElementById('guess-inp').addEventListener('keydown',e=>{if(e.key==='Enter')submitGuess()});
-  document.getElementById('inp-word').addEventListener('keydown',e=>{if(e.key==='Enter')lockWord()});
-  document.getElementById('btn-undo').disabled=true;
-});
-
 // ── VOTE ─────────────────────────────────────────────────────────────────────
-let myVoteDraw  = null; // {chainIdx, stepIdx}
-let myVoteGuess = null;
-let allVotes    = {};   // {playerId: {draw:{ci,si}, guess:{ci,si}}}
-let voteResults = null;
-
-function startVotePhase(p) {
-  // Called after all reveal — collect draws and guesses for voting
+function startVote() {
   if (!revealData) return;
-  allVotes = {};
   myVoteDraw = null; myVoteGuess = null;
-
-  // Build draw options
+  allVotes   = {};
+  const pl   = revealData.players;
   const draws = [], guesses = [];
-  revealChains.forEach((ch, ci) => {
-    ch.steps.forEach((step, si) => {
-      if (step.type === 'draw')  draws.push({ci, si, step});
-      if (step.type === 'guess') guesses.push({ci, si, step});
-    });
-  });
+  revealChains.forEach((ch,ci) => ch.steps.forEach((step,si) => {
+    if (step.type==='draw')  draws.push({ci,si,step});
+    if (step.type==='guess') guesses.push({ci,si,step});
+  }));
+  if (!draws.length && !guesses.length) return;
 
-  const pl = revealData.players;
-
-  // Draw vote UI
-  const drawsEl = document.getElementById('vote-draws');
-  drawsEl.innerHTML = draws.map((d, i) => {
-    const aInfo = (pl||{})[d.step.author] || {};
-    return `<label class="vote-option" id="vd-${i}" onclick="selectVote('draw',${d.ci},${d.si},'vd-${i}')">
-      <img class="vote-preview" src="${d.step.dataUrl||''}" alt="dessin">
-      <span class="vote-name">${esc(aInfo.name||'?')}</span>
-      <span style="font-size:.8rem;color:var(--texte-doux)">→</span>
-    </label>`;
+  document.getElementById('vote-draws').innerHTML = draws.map((d,i) => {
+    const a=(pl||{})[d.step.author]||{};
+    return `<div class="vote-option" id="vd-${i}" onclick="pickVote('draw',${d.ci},${d.si},'vd-${i}')">
+      <img class="vote-preview" src="${d.step.dataUrl||''}" alt="">
+      <span class="vote-name">${esc(a.name||'?')}</span></div>`;
   }).join('');
-
-  // Guess vote UI
-  const guessesEl = document.getElementById('vote-guesses');
-  guessesEl.innerHTML = guesses.map((g, i) => {
-    const aInfo = (pl||{})[g.step.author] || {};
-    return `<label class="vote-option" id="vg-${i}" onclick="selectVote('guess',${g.ci},${g.si},'vg-${i}')">
+  document.getElementById('vote-guesses').innerHTML = guesses.map((g,i) => {
+    const a=(pl||{})[g.step.author]||{};
+    return `<div class="vote-option" id="vg-${i}" onclick="pickVote('guess',${g.ci},${g.si},'vg-${i}')">
       <div class="vote-text-preview">${esc((g.step.text||'').slice(0,20))}</div>
-      <span class="vote-name">${esc(aInfo.name||'?')}</span>
-      <span style="font-size:.8rem;color:var(--texte-doux)">→</span>
-    </label>`;
+      <span class="vote-name">${esc(a.name||'?')}</span></div>`;
   }).join('');
-
+  document.getElementById('btn-submit-vote').disabled = false;
   show('vote');
 }
 
-function selectVote(type, ci, si, elId) {
-  if (type === 'draw') {
-    myVoteDraw = {ci, si};
-    document.querySelectorAll('[id^="vd-"]').forEach(el => el.classList.remove('selected'));
-  } else {
-    myVoteGuess = {ci, si};
-    document.querySelectorAll('[id^="vg-"]').forEach(el => el.classList.remove('selected'));
-  }
+function pickVote(type, ci, si, elId) {
+  if (type==='draw')  { myVoteDraw={ci,si};  document.querySelectorAll('[id^="vd-"]').forEach(e=>e.classList.remove('selected')); }
+  else                { myVoteGuess={ci,si}; document.querySelectorAll('[id^="vg-"]').forEach(e=>e.classList.remove('selected')); }
   document.getElementById(elId).classList.add('selected');
 }
 
@@ -913,185 +893,132 @@ function submitVote() {
   if (!myVoteDraw)  { toast('Vote pour un dessin !'); return; }
   if (!myVoteGuess) { toast('Vote pour une devinette !'); return; }
   document.getElementById('btn-submit-vote').disabled = true;
-  pub('vote_cast', { playerId: myId, draw: myVoteDraw, guess: myVoteGuess });
-  showWait('🗳️ Vote enregistré !', 'En attente des autres votes…');
+  pub('vote_cast', { playerId:myId, draw:myVoteDraw, guess:myVoteGuess });
+  wait('🗳️ Vote envoyé !', 'En attente des autres votes…');
 }
 
 function onVoteCast(p) {
-  if (!isHost) return;
-  allVotes[p.playerId] = { draw: p.draw, guess: p.guess };
-  if (Object.keys(allVotes).length >= game.playerOrder.length) {
-    // Tally results
-    const drawTally = {}, guessTally = {};
-    Object.values(allVotes).forEach(v => {
-      const dk = `${v.draw.ci}-${v.draw.si}`;
-      const gk = `${v.guess.ci}-${v.guess.si}`;
-      drawTally[dk]  = (drawTally[dk]  || 0) + 1;
-      guessTally[gk] = (guessTally[gk] || 0) + 1;
-    });
-    // Find winners
-    const bestDraw  = Object.entries(drawTally).sort((a,b) => b[1]-a[1])[0];
-    const bestGuess = Object.entries(guessTally).sort((a,b) => b[1]-a[1])[0];
-    const [bdc, bds] = bestDraw[0].split('-').map(Number);
-    const [bgc, bgs] = bestGuess[0].split('-').map(Number);
-    pub('vote_results', {
-      draw:  { ci: bdc, si: bds, votes: bestDraw[1] },
-      guess: { ci: bgc, si: bgs, votes: bestGuess[1] }
-    });
-  }
+  if (!isHost || !game) return;
+  allVotes[p.playerId] = p;
+  const got = game.playerOrder.filter(id => allVotes[id]).length;
+  if (got < game.playerOrder.length) return;
+  // Tally
+  const dt={}, gt={};
+  Object.values(allVotes).forEach(v => {
+    const dk=`${v.draw.ci}-${v.draw.si}`, gk=`${v.guess.ci}-${v.guess.si}`;
+    dt[dk]=(dt[dk]||0)+1; gt[gk]=(gt[gk]||0)+1;
+  });
+  const [bdk,bdc]=Object.entries(dt).sort((a,b)=>b[1]-a[1])[0];
+  const [bgk,bgc]=Object.entries(gt).sort((a,b)=>b[1]-a[1])[0];
+  const [bdc0,bds]=bdk.split('-').map(Number);
+  const [bgc0,bgs]=bgk.split('-').map(Number);
+  pub('vote_results',{ draw:{ci:bdc0,si:bds,votes:bdc}, guess:{ci:bgc0,si:bgs,votes:bgc} });
 }
 
 function onVoteResults(p) {
-  voteResults = p;
   if (!revealData) return;
   const pl = revealData.players;
-  const drawStep  = revealChains[p.draw.ci].steps[p.draw.si];
-  const guessStep = revealChains[p.guess.ci].steps[p.guess.si];
-  const drawAuthor  = (pl||{})[drawStep.author]  || {};
-  const guessAuthor = (pl||{})[guessStep.author] || {};
-
-  const list = document.getElementById('trophies-list');
-  const trophies = [
-    { icon:'🎨', cat:'Meilleur dessin',     winner: drawAuthor.name||'?',  votes: p.draw.votes,  avatar: drawAuthor.avatar||avatarOf(drawStep.author), extra: `<img src="${drawStep.dataUrl||''}" style="width:80px;border-radius:8px;margin-top:.4rem">` },
-    { icon:'💬', cat:'Meilleure devinette', winner: guessAuthor.name||'?', votes: p.guess.votes, avatar: guessAuthor.avatar||avatarOf(guessStep.author), extra: `<div style="font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--lavande-d);margin-top:.3rem">${esc(guessStep.text||'')}</div>` },
-  ];
-  list.innerHTML = trophies.map((t, i) => `
+  const ds = revealChains[p.draw.ci].steps[p.draw.si];
+  const gs = revealChains[p.guess.ci].steps[p.guess.si];
+  const da = (pl||{})[ds.author]||{}, ga=(pl||{})[gs.author]||{};
+  document.getElementById('trophies-list').innerHTML = [
+    { icon:'🎨', cat:'Meilleur dessin',     name:da.name||'?', av:da.avatar||av(ds.author), votes:p.draw.votes,  extra:`<img src="${ds.dataUrl||''}" style="width:80px;border-radius:8px;margin-top:.4rem">` },
+    { icon:'💬', cat:'Meilleure devinette', name:ga.name||'?', av:ga.avatar||av(gs.author), votes:p.guess.votes, extra:`<div style="font-family:'Nunito',sans-serif;font-size:1rem;font-weight:800;color:var(--lavande-d);margin-top:.3rem">${esc(gs.text||'')}</div>` },
+  ].map((t,i)=>`
     <div class="trophy-card" style="animation-delay:${i*.15}s">
       <span class="trophy-icon">${t.icon}</span>
       <div class="trophy-info">
         <div class="trophy-cat">${t.cat}</div>
-        <div class="trophy-winner">${t.avatar} ${esc(t.winner)}</div>
+        <div class="trophy-winner">${t.av} ${esc(t.name)}</div>
         <div class="trophy-votes">${t.votes} vote${t.votes>1?'s':''}</div>
         ${t.extra}
       </div>
     </div>`).join('');
-
   show('trophies');
 }
 
 function goToShareResults() {
   show('share');
-  document.getElementById('res-sub').textContent = isHost
-    ? 'Clique sur Révéler pour dévoiler étape par étape…'
-    : "L'hôte va dévoiler les résultats…";
-  if (isHost) {
-    document.getElementById('reveal-bar').style.display = 'flex';
-    document.getElementById('btn-reveal').style.display = 'inline-flex';
-    document.getElementById('btn-share-img').style.display = 'none';
-    document.getElementById('btn-replay').style.display = 'none';
-    document.getElementById('btn-home').style.display = 'none';
-  }
+  if (isHost) document.getElementById('reveal-bar').style.display='flex';
 }
 
-// ── SHARE AS IMAGE ────────────────────────────────────────────────────────────
+// ── SHARE IMAGE ───────────────────────────────────────────────────────────────
 async function shareChainImage() {
   if (!revealData) return;
   toast('📸 Génération en cours…', 5000);
-
-  const { chains, players: pl } = revealData;
-  // Pick first chain to share (or could pick all, but let's keep it simple)
-  const chainId = revealChains[0].sid;
-  const steps   = chains[chainId];
-  const starter = (pl||{})[chainId] || {};
-
-  const W = 600, PAD = 24, STEP_H = 180, HEADER_H = 72;
-  const H = HEADER_H + steps.length * (STEP_H + 12) + PAD * 2;
-
-  const cv  = document.createElement('canvas');
-  cv.width  = W; cv.height = H;
-  const ctx = cv.getContext('2d');
-
-  // Background
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#fef8f0');
-  grad.addColorStop(1, '#f0ecfd');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
-
-  // Header
-  ctx.fillStyle = '#e8809e';
-  roundRect(ctx, PAD, PAD, W - PAD*2, HEADER_H - 8, 16);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px Nunito, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(`🎨 Chaîne de ${starter.name||'?'} — Mots Doux`, W/2, PAD + 38);
-
-  let y = HEADER_H + PAD;
-  for (const step of steps) {
-    const aInfo = (pl||{})[step.author] || {};
-    const label = step.type === 'word' ? `${aInfo.name||'?'} a choisi` : step.type === 'draw' ? `${aInfo.name||'?'} a dessiné` : `${aInfo.name||'?'} a deviné`;
-    const bgColor = step.type === 'draw' ? '#fce7ef' : step.type === 'word' ? '#d4f7eb' : '#ece8fd';
-
-    ctx.fillStyle = bgColor;
-    roundRect(ctx, PAD, y, W - PAD*2, STEP_H, 14);
-    ctx.fill();
-
-    // Step label
-    ctx.fillStyle = '#8a6d5e';
-    ctx.font = '600 13px Quicksand, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(label.toUpperCase(), PAD + 14, y + 22);
-
-    if (step.type === 'draw' && step.dataUrl) {
-      await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          // Fit image in box
-          const maxW = W - PAD*2 - 16, maxH = STEP_H - 38;
-          let sw = img.width, sh = img.height;
-          const scale = Math.min(maxW/sw, maxH/sh);
-          sw *= scale; sh *= scale;
-          const ox = PAD + 8 + (maxW - sw) / 2;
-          ctx.drawImage(img, ox, y + 30, sw, sh);
-          resolve();
-        };
-        img.src = step.dataUrl;
-      });
+  const { chains, players:pl } = revealData;
+  const sid    = revealChains[0].sid;
+  const steps  = chains[sid];
+  const starter= (pl||{})[sid]||{};
+  const W=600, PAD=24, SH=180, HDR=72;
+  const H=HDR+steps.length*(SH+12)+PAD*2;
+  const tmp=document.createElement('canvas'); tmp.width=W; tmp.height=H;
+  const c=tmp.getContext('2d');
+  const g=c.createLinearGradient(0,0,W,H); g.addColorStop(0,'#fef8f0'); g.addColorStop(1,'#f0ecfd');
+  c.fillStyle=g; c.fillRect(0,0,W,H);
+  rr(c,PAD,PAD,W-PAD*2,HDR-8,16); c.fillStyle='#e8809e'; c.fill();
+  c.fillStyle='#fff'; c.font='bold 20px sans-serif'; c.textAlign='center';
+  c.fillText(`Chaîne de ${starter.name||'?'} — Mots Doux`, W/2, PAD+36);
+  let y=HDR+PAD;
+  for(const step of steps){
+    const a=(pl||{})[step.author]||{};
+    const sbg=step.type==='draw'?'#fce7ef':step.type==='word'?'#d4f7eb':'#ece8fd';
+    rr(c,PAD,y,W-PAD*2,SH,14); c.fillStyle=sbg; c.fill();
+    c.fillStyle='#8a6d5e'; c.font='600 12px sans-serif'; c.textAlign='left';
+    const lbl=step.type==='draw'?`${a.name||'?'} a dessiné`:step.type==='word'?`${a.name||'?'} a choisi`:`${a.name||'?'} a deviné`;
+    c.fillText(lbl.toUpperCase(), PAD+14, y+20);
+    if(step.type==='draw'&&step.dataUrl){
+      await new Promise(res=>{const i=new Image();i.onload=()=>{const mw=W-PAD*2-16,mh=SH-36;const sc=Math.min(mw/i.width,mh/i.height);const sw=i.width*sc,sh=i.height*sc;c.drawImage(i,PAD+8+(mw-sw)/2,y+28,sw,sh);res()};i.src=step.dataUrl;});
     } else {
-      ctx.fillStyle = '#4a3728';
-      ctx.font = 'bold 20px Nunito, sans-serif';
-      ctx.textAlign = 'center';
-      const text = step.text || '';
-      ctx.fillText(text.length > 40 ? text.slice(0,40)+'…' : text, W/2, y + STEP_H/2 + 10);
+      c.fillStyle='#4a3728'; c.font='bold 18px sans-serif'; c.textAlign='center';
+      const t=step.text||''; c.fillText(t.length>40?t.slice(0,40)+'…':t, W/2, y+SH/2+8);
     }
-    y += STEP_H + 12;
+    y+=SH+12;
   }
-
-  // Footer
-  ctx.fillStyle = 'rgba(138,109,94,.4)';
-  ctx.font = '500 12px Quicksand, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('motsdoux.vercel.app', W/2, H - 8);
-
-  // Export
-  cv.toBlob(async blob => {
-    const file = new File([blob], 'telephone-dessine.png', { type: 'image/png' });
-    if (navigator.share && navigator.canShare({ files: [file] })) {
-      await navigator.share({ title: 'Téléphone Dessiné — Mots Doux', files: [file] });
+  c.fillStyle='rgba(138,109,94,.4)'; c.font='500 11px sans-serif'; c.textAlign='center';
+  c.fillText('motsdoux.vercel.app', W/2, H-6);
+  tmp.toBlob(async blob=>{
+    const file=new File([blob],'telephone-dessine.png',{type:'image/png'});
+    if(navigator.share&&navigator.canShare({files:[file]})){
+      await navigator.share({title:'Téléphone Dessiné — Mots Doux',files:[file]});
     } else {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'telephone-dessine.png';
-      a.click();
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='telephone-dessine.png'; a.click();
       toast('📸 Image téléchargée !');
     }
-  }, 'image/png');
+  },'image/png');
+}
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath();}
+
+// ── BACK TO LOBBY ────────────────────────────────────────────────────────────
+function backToLobby() {
+  pub('back_lobby', {});
+  onBackLobby();
+}
+function onBackLobby() {
+  game=null; pending={}; collectedWords={}; clearInterval(timerInt);
+  revealData=null; revealChains=[]; revealCI=0; revealSI=0;
+  allVotes={}; myVoteDraw=null; myVoteGuess=null;
+  document.getElementById('reveal-bar').style.display = 'none';
+  document.getElementById('done-bar').style.display   = 'none';
+  // Reset word input
+  const inp=document.getElementById('inp-word'); if(inp){inp.disabled=false;inp.value='';}
+  const msg=document.getElementById('word-locked-msg'); if(msg)msg.style.display='none';
+  const blw=document.getElementById('btn-lock-word'); if(blw)blw.disabled=false;
+  myWord = '';
+  if(channel) channel.presence.update({name:myName,avatar:av(myId),bg:bg(myId),wordReady:false});
+  show('lobby');
+  renderPlayers();
 }
 
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
-  ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-  ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
-  ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y);
-  ctx.closePath();
-}
-
-// ── PATCH onMsg to handle new message types ──────────────────────────────────
-const _origOnMsg = onMsg;
-// Override onMsg inline — add vote_cast and vote_results
+// ── INIT ─────────────────────────────────────────────────────────────────────
+window.addEventListener('load', () => {
+  initCanvas();
+  document.getElementById('inp-name').addEventListener('keydown', e => { if(e.key==='Enter') createRoom(); });
+  document.getElementById('inp-code').addEventListener('input',   e => { e.target.value=e.target.value.toUpperCase(); });
+  document.getElementById('guess-inp').addEventListener('keydown',e => { if(e.key==='Enter') submitGuess(); });
+  document.getElementById('inp-word').addEventListener('keydown', e => { if(e.key==='Enter') lockWord(); });
+  document.getElementById('btn-undo').disabled = true;
+});
 
 </script>
 </body>
