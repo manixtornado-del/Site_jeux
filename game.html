@@ -496,8 +496,11 @@ function onWordReady(p) {
   // All words received — build game state and broadcast
   const assignments = {}, chains = {};
   ids.forEach(id => {
-    assignments[id] = id; // round 0: draw your own word
     chains[id] = [{ type: 'word', author: id, text: collectedWords[id] }];
+  });
+  // Round 0: each player draws the NEXT player's word (rotate by 1)
+  ids.forEach((id, i) => {
+    assignments[id] = ids[(i + 1) % ids.length];
   });
   const state = {
     round: 0,
