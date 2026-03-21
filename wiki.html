@@ -478,7 +478,7 @@ async function checkWord(word,l){
   }catch(e){ return true; }
 }
 
-async function submitWord(){
+function submitWord(){
   if(gameOver)return;
   const input=document.getElementById('word-input'),raw=input.value.trim();
   if(!raw)return;
@@ -488,19 +488,7 @@ async function submitWord(){
     showToast(t('already'));input.classList.add('shake');
     setTimeout(()=>input.classList.remove('shake'),380);input.value='';return;
   }
-  // Only check single words (not the full title guess)
-  if(!normInput.includes(' ')){
-    showToast(t('checking'));
-    document.getElementById('submit-btn').disabled=true;
-    const known=await checkWord(raw,lang);
-    document.getElementById('submit-btn').disabled=false;
-    if(!known){
-      showToast(t('not_word'));
-      input.classList.add('shake');
-      setTimeout(()=>input.classList.remove('shake'),380);
-      return;
-    }
-  }
+
   guessedNorms.add(normInput);totalGuesses++;
   let occ=0;tokens.forEach(tok=>{if(/[a-zA-ZÀ-ÿ]/.test(tok)&&norm(tok)===normInput)occ++});
   const found=occ>0;
