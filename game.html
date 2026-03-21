@@ -365,29 +365,34 @@ function rnd()   { return Math.random().toString(36).slice(2,8).toUpperCase(); }
 function connectAbly(code) {
   roomCode = code;
   ably = new Ably.Realtime({ authUrl: '/api/token', authParams: { clientId: myId }, clientId: myId });
-  ably.connection.on('connected', () => {
-    channel = ably.channels.get('mots-doux-' + code);
-    channel.subscribe('game', msg => onMsg(msg.data));
-    // On any presence change, re-fetch the full list
-    channel.presence.subscribe('enter',  () => syncPresence());
-    channel.presence.subscribe('leave',  () => syncPresence());
-    channel.presence.subscribe('update', () => syncPresence());
-    // Enter with our data, then sync
-    channel.presence.enter(
-      { name: myName, avatar: av(myId), bg: bg(myId), wordReady: false },
-      () => syncPresence()
-    );
+  ably.connection.on('connected', async () => {
+    try {
+      channel = ably.channels.get('mots-doux-' + code);
+      channel.subscribe('game', msg => onMsg(msg.data));
+      // Subscribe to presence events before entering (SDK v2 : async)
+      channel.presence.subscribe('enter',  () => syncPresence());
+      channel.presence.subscribe('leave',  () => syncPresence());
+      channel.presence.subscribe('update', () => syncPresence());
+      // Enter presence then do an initial sync (SDK v2 : Promise, no callback)
+      await channel.presence.enter({ name: myName, avatar: av(myId), bg: bg(myId), wordReady: false });
+      await syncPresence();
+    } catch (e) {
+      console.error('Ably setup error:', e);
+      toast('❌ Erreur de connexion');
+    }
   });
   ably.connection.on('failed', () => toast('❌ Connexion Ably échouée'));
 }
 
-function syncPresence() {
-  channel.presence.get((err, members) => {
-    if (err) return;
+async function syncPresence() {
+  try {
+    const members = await channel.presence.get();
     players = {};
     (members || []).forEach(m => { players[m.clientId] = m.data || {}; });
     renderPlayers();
-  });
+  } catch (e) {
+    console.error('syncPresence error:', e);
+  }
 }
 
 function pub(type, payload) {
@@ -436,15 +441,15 @@ function copyCode() {
   navigator.clipboard.writeText(roomCode).then(() => toast('Code copié ! 📋'));
 }
 
-function lockWord() {
+async function lockWord() {
   const w = document.getElementById('inp-word').value.trim();
   if (!w) { toast('Entre un mot !'); return; }
   myWord = w;
   document.getElementById('inp-word').disabled = true;
   document.getElementById('btn-lock-word').disabled = true;
   document.getElementById('word-locked-msg').style.display = 'block';
-  // Update presence with wordReady:true so host can see
-  channel.presence.update({ name: myName, avatar: av(myId), bg: bg(myId), wordReady: true });
+  // Update presence with wordReady:true so host can see (SDK v2 : Promise)
+  await channel.presence.update({ name: myName, avatar: av(myId), bg: bg(myId), wordReady: true });
 }
 
 function renderPlayers() {
@@ -1005,7 +1010,7 @@ function onBackLobby() {
   const msg=document.getElementById('word-locked-msg'); if(msg)msg.style.display='none';
   const blw=document.getElementById('btn-lock-word'); if(blw)blw.disabled=false;
   myWord = '';
-  if(channel) channel.presence.update({name:myName,avatar:av(myId),bg:bg(myId),wordReady:false});
+  if(channel) channel.presence.update({name:myName,avatar:av(myId),bg:bg(myId),wordReady:false}).catch(()=>{});
   show('lobby');
   renderPlayers();
 }
